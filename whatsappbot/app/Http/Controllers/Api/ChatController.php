@@ -1,0 +1,188 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Conversation;
+use App\Models\Message;
+use App\Models\Contact;
+use App\Models\Integration;
+use App\Jobs\SendBulkMessageJob;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+
+class ChatController extends Controller
+{
+    public function index(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $conversations = Conversation::where('user_id', $request->user()->id)
+            ->with(['contact', 'messages' => function ($query) {
+                $query->latest()->limit(1);
+            }])
+            ->orderByDesc('last_message_at')
+            ->paginate(20);
+
+        return response()->json($conversations);
+    }
+
+    public function show(Conversation $conversation, Request $request): \Illuminate\Http\JsonResponse
+    {
+        if ($conversation->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $messages = $conversation->messages()
+            ->orderBy('created_at', 'asc')
+            ->paginate(50);
+
+        return response()->json($messages);
+    }
+
+    public function markAsRead(Conversation $conversation, Request $request): \Illuminate\Http\JsonResponse
+    {
+        if ($conversation->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $conversation->update(['unread_count' => 0]);
+        
+        // Also mark all messages from 'contact' as 'read'
+        $conversation->messages()->where('sender', 'contact')->update(['status' => 'read', 'read_at' => now()]);
+
+        return response()->json(['message' => 'Conversation marked as read']);
+    }
+
+    public function sendMessage(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'contact_id' => 'required|exists:contacts,id',
+            'content' => 'nullable|string',
+            'attachment' => 'nullable|file|max:10240', // 10MB max
+        ]);
+
+        $user = $request->user();
+        $contact = Contact::findOrFail($validated['contact_id']);
+        
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('attachments', 'public');
+        }
+
+        $content = $validated['content'] ?? '';
+
+        return DB::transaction(function () use ($user, $contact, $content, $attachmentPath) {
+            $conversation = Conversation::firstOrCreate([
+                'user_id' => $user->id,
+                'contact_id' => $contact->id,
+            ]);
+
+            // Get integration
+            $integration = Integration::where('user_id', $user->id)->first();
+            
+            if (!$integration) {
+                return response()->json(['message' => 'No active WhatsApp integration found'], 400);
+            }
+
+            // Store local message first as pending
+            $message = Message::create([
+                'conversation_id' => $conversation->id,
+                'sender' => 'user',
+                'content' => $attachmentPath ? ($content ? $content . " (📎 Attached: " . basename($attachmentPath) . ")" : "📎 Attached: " . basename($attachmentPath)) : $content,
+                'status' => 'pending',
+            ]);
+
+            // Integrate with WasenderAPI
+            try {
+                $payload = [
+                    'to' => $contact->phone_number,
+                    'text' => $content
+                ];
+
+                if ($attachmentPath) {
+                    $payload['media'] = asset('storage/' . $attachmentPath);
+                }
+
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $integration->api_key,
+                    'Accept' => 'application/json',
+                ])->post("https://api.wasenderapi.com/api/send-message", $payload);
+
+                if ($response->successful()) {
+                    $data = $response->json();
+                    $waId = $data['data']['msgId'] ?? null;
+                    
+                    $message->update([
+                        'whatsapp_message_id' => $waId,
+                        'status' => 'sent'
+                    ]);
+
+                    $conversation->update(['last_message_at' => now()]);
+
+                    return response()->json($message);
+                } else {
+                    $message->update(['status' => 'failed']);
+                    return response()->json(['message' => 'Failed to send message via WhatsApp', 'error' => $response->json()], 500);
+                }
+            } catch (\Exception $e) {
+                $message->update(['status' => 'failed']);
+                return response()->json(['message' => 'Error contacting WhatsApp service'], 500);
+            }
+        });
+    }
+
+    public function bulkSendMessage(Request $request)
+    {
+        $validated = $request->validate([
+            'contact_ids' => 'required|array',
+            'contact_ids.*' => 'exists:contacts,id',
+            'content' => 'required|string',
+        ]);
+
+        $user = $request->user();
+        $integration = Integration::where('user_id', $user->id)->first();
+
+        if (!$integration) {
+            return response()->json(['message' => 'No active WhatsApp integration found'], 400);
+        }
+
+        // We dispatch jobs for each contact. 
+        // This is the "Senior" way to handle it: one job per message allows parallel processing and individual retries.
+        foreach ($validated['contact_ids'] as $contactId) {
+            $contact = Contact::find($contactId);
+            if ($contact) {
+                SendBulkMessageJob::dispatch($integration, $contact, $validated['content']);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Bulk messaging queued successfully.',
+            'count' => count($validated['contact_ids'])
+        ]);
+    }
+
+    public function clearMessages(Conversation $conversation, Request $request): \Illuminate\Http\JsonResponse
+    {
+        if ($conversation->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $conversation->messages()->delete();
+        $conversation->update(['unread_count' => 0]);
+
+        return response()->json(['message' => 'Messages cleared successfully']);
+    }
+
+    public function destroy(Conversation $conversation, Request $request): \Illuminate\Http\JsonResponse
+    {
+        if ($conversation->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $conversation->messages()->delete();
+        $conversation->delete();
+
+        return response()->json(['message' => 'Conversation deleted successfully']);
+    }
+}

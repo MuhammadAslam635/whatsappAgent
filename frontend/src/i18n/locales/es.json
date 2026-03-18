@@ -1,0 +1,51 @@
+{
+  "header": {
+    "greeting_morning": "Buenos Días",
+    "greeting_afternoon": "Buenas Tardes",
+    "greeting_evening": "Buenas Noches",
+    "systems_operational": "Todos los sistemas operativos",
+    "professional_plan": "Plan Profesional",
+    "change_color": "Cambiar color de acento",
+    "toggle_theme": "Cambiar tema",
+    "change_language": "Cambiar idioma",
+    "move_sidebar_left": "Mover barra lateral a la izquierda",
+    "move_sidebar_right": "Mover barra a la derecha"
+  },
+  "sidebar": {
+    "overview": "Resumen",
+    "chat": "Chat",
+    "upload": "Subir",
+    "settings": "Ajustes",
+    "logout": "Cerrar sesión"
+  },
+  "overview": {
+    "message_status": "Estado del mensaje",
+    "hits": "Impactos",
+    "sent": "Enviado",
+    "delivered": "Entregado",
+    "remaining": "Restante",
+    "total_delivered": "Total de mensajes entregados",
+    "week": "Semana",
+    "month": "Mes",
+    "year": "Año",
+    "date_axis": "Eje de fecha"
+  },
+  "stats": {
+    "connected_numbers": "Números conectados",
+    "active_instances": "Instancias activas de WhatsApp",
+    "total_contacts": "Contactos totales",
+    "synced_numbers": "Números de teléfono sincronizados"
+  },
+  "settings": {
+    "title": "Configuración de Integración",
+    "subtitle": "Elija su método de integración de WhatsApp preferido para comenzar a enviar mensajes masivos.",
+    "wa_send_title": "WA Send API",
+    "wa_send_desc": "Conéctese utilizando nuestra API especializada de alta velocidad. Ideal para campañas automatizadas de alto volumen.",
+    "meta_business_title": "Meta Business",
+    "meta_business_desc": "Intégrese con la API oficial de Meta Cloud. Ideal para cuentas comerciales verificadas y soporte oficial.",
+    "integrate_button": "Integrar ahora",
+    "features": "Características clave",
+    "wa_features": ["No requiere verificación de Meta", "Alta capacidad de mensajes", "Especializado para envíos masivos"],
+    "meta_features": ["Verificación oficial de Meta", "Soporte para perfiles comerciales", "Escalabilidad a largo plazo"]
+  }
+}

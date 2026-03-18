@@ -1,0 +1,51 @@
+{
+  "header": {
+    "greeting_morning": "早上好",
+    "greeting_afternoon": "下午好",
+    "greeting_evening": "晚上好",
+    "systems_operational": "所有系统运行正常",
+    "professional_plan": "专业计划",
+    "change_color": "更改强调色",
+    "toggle_theme": "切换主题",
+    "change_language": "改变语言",
+    "move_sidebar_left": "将侧栏移至左侧",
+    "move_sidebar_right": "将侧栏移至右侧"
+  },
+  "sidebar": {
+    "overview": "概览",
+    "chat": "聊天",
+    "upload": "上传",
+    "settings": "设置",
+    "logout": "注销"
+  },
+  "overview": {
+    "message_status": "消息状态",
+    "hits": "点击次数",
+    "sent": "已发送",
+    "delivered": "已送达",
+    "remaining": "剩余",
+    "total_delivered": "送达消息总数",
+    "week": "周",
+    "month": "月",
+    "year": "年",
+    "date_axis": "日期轴"
+  },
+  "stats": {
+    "connected_numbers": "已连接号码",
+    "active_instances": "活动 WhatsApp 实例",
+    "total_contacts": "联系人总数",
+    "synced_numbers": "已同步的电话号码"
+  },
+  "settings": {
+    "title": "集成设置",
+    "subtitle": "选择您首选的 WhatsApp 集成方法以开始发送群发消息。",
+    "wa_send_title": "WA Send API",
+    "wa_send_desc": "使用我们的专业高速 API 进行连接。最适合大批量自动化活动。",
+    "meta_business_title": "Meta Business",
+    "meta_business_desc": "与官方 Meta 云 API 集成。非常适合经过验证的商业账户和官方支持。",
+    "integrate_button": "立即集成",
+    "features": "主要功能",
+    "wa_features": ["无需 Meta 验证", "高消息吞吐量", "专为群发设计"],
+    "meta_features": ["官方 Meta 验证", "商业资料支持", "长期可扩展性"]
+  }
+}

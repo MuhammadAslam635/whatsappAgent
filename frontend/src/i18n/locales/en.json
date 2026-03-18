@@ -1,0 +1,51 @@
+{
+  "header": {
+    "greeting_morning": "Good Morning",
+    "greeting_afternoon": "Good Afternoon",
+    "greeting_evening": "Good Evening",
+    "systems_operational": "All systems operational",
+    "professional_plan": "Professional Plan",
+    "change_color": "Change accent color",
+    "toggle_theme": "Toggle theme",
+    "change_language": "Change Language",
+    "move_sidebar_left": "Move Sidebar to Left",
+    "move_sidebar_right": "Move Sidebar to Right"
+  },
+  "sidebar": {
+    "overview": "Overview",
+    "chat": "Chat",
+    "upload": "Upload",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "overview": {
+    "message_status": "Message Status",
+    "hits": "Hits",
+    "sent": "Sent",
+    "delivered": "Delivered",
+    "remaining": "Remaining",
+    "total_delivered": "Total Delivered Messages",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
+    "date_axis": "Date Axis"
+  },
+  "stats": {
+    "connected_numbers": "Connected Numbers",
+    "active_instances": "Active WhatsApp Instances",
+    "total_contacts": "Total Contacts",
+    "synced_numbers": "Synced Phone Numbers"
+  },
+  "settings": {
+    "title": "Integration Settings",
+    "subtitle": "Choose your preferred WhatsApp integration method to start sending bulk messages.",
+    "wa_send_title": "WA Send API",
+    "wa_send_desc": "Connect using our specialized high-speed API. Best for high-volume automated campaigns.",
+    "meta_business_title": "Meta Business",
+    "meta_business_desc": "Integrate with the official Meta Cloud API. Ideal for verified business accounts and official support.",
+    "integrate_button": "Integrate Now",
+    "features": "Key Features",
+    "wa_features": ["No Meta verification required", "High message throughput", "Specialized for bulk sending"],
+    "meta_features": ["Official Meta verification", "Business profile support", "Long-term scalability"]
+  }
+}

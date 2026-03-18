@@ -1,0 +1,51 @@
+{
+  "header": {
+    "greeting_morning": "صباح الخير",
+    "greeting_afternoon": "طاب مساؤك",
+    "greeting_evening": "مساء الخير",
+    "systems_operational": "تعمل جميع الأنظمة",
+    "professional_plan": "الخطة الاحترافية",
+    "change_color": "تغيير لون التمييز",
+    "toggle_theme": "تبديل المظهر",
+    "change_language": "تغيير اللغة",
+    "move_sidebar_left": "تحريك الشريط الجانبي إلى اليسار",
+    "move_sidebar_right": "تحريك الشريط الجانبي إلى اليمين"
+  },
+  "sidebar": {
+    "overview": "نظرة عامة",
+    "chat": "محادثة",
+    "upload": "رفع",
+    "settings": "الإعدادات",
+    "logout": "تسجيل خروج"
+  },
+  "overview": {
+    "message_status": "حالة الرسالة",
+    "hits": "الزيارات",
+    "sent": "أرسلت",
+    "delivered": "تم التوصيل",
+    "remaining": "متبقي",
+    "total_delivered": "إجمالي الرسائل المسلمة",
+    "week": "أسبوع",
+    "month": "شهر",
+    "year": "سنة",
+    "date_axis": "محور التاريخ"
+  },
+  "stats": {
+    "connected_numbers": "الأرقام المتصلة",
+    "active_instances": "مثيلات WhatsApp النشطة",
+    "total_contacts": "إجمالي جهات الاتصال",
+    "synced_numbers": "أرقام هواتف متزامنة"
+  },
+  "settings": {
+    "title": "إعدادات التكامل",
+    "subtitle": "اختر طريقة تكامل WhatsApp المفضلة لديك للبدء في إرسال الرسائل الجماعية.",
+    "wa_send_title": "WA Send API",
+    "wa_send_desc": "اتصل باستخدام واجهة برمجة التطبيقات المتخصصة عالية السرعة ولدينا. الأفضل للحملات الآلية كبيرة الحجم.",
+    "meta_business_title": "Meta Business",
+    "meta_business_desc": "تكامل مع واجهة برمجة تطبيقات Meta Cloud الرسمية. مثالي لحسابات الأعمال الموثقة والدعم الرسمي.",
+    "integrate_button": "تكامل الآن",
+    "features": "الميزات الرئيسية",
+    "wa_features": ["لا يتطلب توثيق Meta", "إنتاجية رسائل عالية", "متخصص للإرسال الجماعي"],
+    "meta_features": ["توثيق Meta الرسمي", "دعم ملف تعريف الأعمال", "قابلة للتوسع على المدى الطويل"]
+  }
+}

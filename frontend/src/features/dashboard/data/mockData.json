@@ -1,0 +1,87 @@
+{
+  "stats": [
+    {
+      "id": "connected-numbers",
+      "title": "Connected Numbers",
+      "value": "24",
+      "label": "Active WhatsApp Instances",
+      "type": "line",
+      "chartData": [
+        35,
+        10,
+        30,
+        20,
+        35,
+        15,
+        25
+      ]
+    },
+    {
+      "id": "total-contacts",
+      "title": "Total Contacts",
+      "value": "12,842",
+      "label": "Synced Phone Numbers",
+      "type": "dot",
+      "dots": [
+        1,
+        0,
+        2,
+        1,
+        0,
+        2,
+        0,
+        1,
+        2,
+        0,
+        1,
+        0,
+        2,
+        1,
+        0,
+        1,
+        2,
+        0
+      ]
+    }
+  ],
+  "deliveryStatus": {
+    "hits": "82%",
+    "series": [
+      {
+        "label": "Sent",
+        "value": 75,
+        "color": "var(--accent)"
+      },
+      {
+        "label": "Delivered",
+        "value": 68,
+        "color": "#10b981"
+      },
+      {
+        "label": "Remaining",
+        "value": 15,
+        "color": "#fbbf24"
+      }
+    ]
+  },
+  "messageTimeline": {
+    "total": "42.8k",
+    "data": [
+      45,
+      62,
+      38,
+      75,
+      90,
+      55,
+      42,
+      88,
+      65,
+      78,
+      95,
+      50,
+      40,
+      68,
+      82
+    ]
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "header": {
+    "greeting_morning": "Bonjour",
+    "greeting_afternoon": "Bon Après-Midi",
+    "greeting_evening": "Bonsoir",
+    "systems_operational": "Tous les systèmes sont opérationnels",
+    "professional_plan": "Au Forfait Professionnel",
+    "change_color": "Changer la couleur d'accentuation",
+    "toggle_theme": "Changer le thème",
+    "change_language": "Changer de langue",
+    "move_sidebar_left": "Déplacer la barre latérale vers la gauche",
+    "move_sidebar_right": "Déplacer la barre latérale vers la droite"
+  },
+  "sidebar": {
+    "overview": "Aperçu",
+    "chat": "Discussion",
+    "upload": "Télécharger",
+    "settings": "Paramètres",
+    "logout": "Se déconnecter"
+  },
+  "overview": {
+    "message_status": "État du message",
+    "hits": "Vues",
+    "sent": "Envoyé",
+    "delivered": "Livré",
+    "remaining": "Restant",
+    "total_delivered": "Total des messages livrés",
+    "week": "Semaine",
+    "month": "Mois",
+    "year": "Année",
+    "date_axis": "Axe de date"
+  },
+  "stats": {
+    "connected_numbers": "Numéros connectés",
+    "active_instances": "Instances WhatsApp actives",
+    "total_contacts": "Total des contacts",
+    "synced_numbers": "Numéros de téléphone synchronisés"
+  },
+  "settings": {
+    "title": "Paramètres d'intégration",
+    "subtitle": "Choisissez votre méthode d'intégration WhatsApp préférée pour commencer à envoyer des messages en masse.",
+    "wa_send_title": "WA Send API",
+    "wa_send_desc": "Connectez-vous via notre API spécialisée haute vitesse. Idéal pour les campagnes automatisées à gros volume.",
+    "meta_business_title": "Meta Business",
+    "meta_business_desc": "Intégrez-vous à l'API officielle Meta Cloud. Idéal pour les comptes business vérifiés et le support officiel.",
+    "integrate_button": "Intégrer maintenant",
+    "features": "Fonctionnalités clés",
+    "wa_features": ["Pas de vérification Meta requise", "Débit de messages élevé", "Spécialisé pour les envois en masse"],
+    "meta_features": ["Vérification Meta officielle", "Prise en charge des profils business", "Évolutivité à long terme"]
+  }
+}

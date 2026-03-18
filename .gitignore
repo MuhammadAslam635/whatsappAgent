@@ -1,0 +1,28 @@
+# Laravel
+/whatsappbot/.env
+/whatsappbot/storage/*.key
+/whatsappbot/storage/framework/cache/data/*
+/whatsappbot/storage/framework/sessions/*
+/whatsappbot/storage/framework/views/*
+/whatsappbot/storage/logs/*.log
+/whatsappbot/vendor/
+/whatsappbot/node_modules/
+/whatsappbot/public/storage
+/whatsappbot/public/hot
+/whatsappbot/.phpunit.result.cache
+
+# Frontend
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.env.local
+/frontend/.env.development.local
+/frontend/.env.test.local
+/frontend/.env.production.local
+/frontend/npm-debug.log*
+/frontend/yarn-error.log*
+/frontend/pnpm-debug.log*
+/frontend/.vscode/
+
+# System
+.DS_Store
+Thumbs.db

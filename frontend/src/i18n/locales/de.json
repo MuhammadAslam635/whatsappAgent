@@ -1,0 +1,51 @@
+{
+  "header": {
+    "greeting_morning": "Guten Morgen",
+    "greeting_afternoon": "Guten Tag",
+    "greeting_evening": "Guten Abend",
+    "systems_operational": "Alle Systeme in Betrieb",
+    "professional_plan": "Professioneller Plan",
+    "change_color": "Akzentfarbe ändern",
+    "toggle_theme": "Thema wechseln",
+    "change_language": "Sprache ändern",
+    "move_sidebar_left": "Seitenleiste nach links verschieben",
+    "move_sidebar_right": "Seitenleiste nach rechts verschieben"
+  },
+  "sidebar": {
+    "overview": "Übersicht",
+    "chat": "Plaudern",
+    "upload": "Hochladen",
+    "settings": "Einstellungen",
+    "logout": "Ausloggen"
+  },
+  "overview": {
+    "message_status": "Nachrichtenstatus",
+    "hits": "Treffer",
+    "sent": "Gesendet",
+    "delivered": "Geliefert",
+    "remaining": "Verbleibend",
+    "total_delivered": "Gesamtzahl der zugestellten Nachrichten",
+    "week": "Woche",
+    "month": "Monat",
+    "year": "Jahr",
+    "date_axis": "Datumsachse"
+  },
+  "stats": {
+    "connected_numbers": "Verbundene Nummern",
+    "active_instances": "Aktive WhatsApp-Instanzen",
+    "total_contacts": "Kontakte insgesamt",
+    "synced_numbers": "Synchronisierte Telefonnummern"
+  },
+  "settings": {
+    "title": "Integrations-Einstellungen",
+    "subtitle": "Wählen Sie Ihre bevorzugte WhatsApp-Integrationsmethode, um mit dem Versenden von Massennachrichten zu beginnen.",
+    "wa_send_title": "WA Send API",
+    "wa_send_desc": "Verbinden Sie sich über unsere spezialisierte Hochgeschwindigkeits-API. Bestens geeignet für automatisierte Hochvolumen-Kampagnen.",
+    "meta_business_title": "Meta Business",
+    "meta_business_desc": "Integrieren Sie sich in die offizielle Meta Cloud API. Ideal für verifizierte Geschäftskonten und offiziellen Support.",
+    "integrate_button": "Jetzt integrieren",
+    "features": "Hauptmerkmale",
+    "wa_features": ["Keine Meta-Verifizierung erforderlich", "Hoher Nachrichtendurchsatz", "Spezialisiert auf Massenversand"],
+    "meta_features": ["Offizielle Meta-Verifizierung", "Unterstützung für Geschäftsprofile", "Langfristige Skalierbarkeit"]
+  }
+}
