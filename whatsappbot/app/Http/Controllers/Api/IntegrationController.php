@@ -11,59 +11,60 @@ class IntegrationController extends Controller
 {
     public function index(Request $request)
     {
-        return $request->user()->integrations;
+        return $request->user()->integrations->map(function ($integration) {
+            return array_merge($integration->toArray(), [
+                'api_key' => $integration->api_key ? str_repeat('*', 6) . substr($integration->api_key, -4) : null,
+                'meta_access_token' => $integration->meta_access_token ? str_repeat('*', 6) . substr($integration->meta_access_token, -4) : null,
+            ]);
+        });
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'type' => 'required|in:wa_sender,meta',
-            'phone_number' => 'nullable|string',
-            'api_key' => 'required|string',
+            'phone_number' => 'required|string',
+            'api_key' => 'required_if:type,wa_sender|nullable|string',
             'secret_key' => 'nullable|string',
             'webhook_secret' => 'nullable|string',
-            'app_id' => 'nullable|string',
-            'phone_number_id' => 'nullable|string',
-            'waba_id' => 'nullable|string',
+            'meta_phone_number_id' => 'required_if:type,meta|nullable|string',
+            'meta_access_token' => 'required_if:type,meta|nullable|string',
+            'meta_waba_id' => 'nullable|string',
         ]);
 
+        $userId = $request->user()->id;
 
-        $user = $request->user();
-        
-        // Check if there's any existing integration for this user
-        $existing = Integration::where('user_id', $user->id)->first();
-        
-        if ($existing && $existing->type !== $validated['type']) {
-            return response()->json([
-                'message' => "You already have an active {$existing->type} integration. Please delete it before switching."
-            ], 400);
-        }
+        // Remove other type — user picks one
+        Integration::where('user_id', $userId)
+            ->where('type', '!=', $validated['type'])
+            ->delete();
 
-        // Use the existing one if it exists (regardless of phone number, since we only allow one)
-        $integration = $existing;
+        $integration = Integration::where('user_id', $userId)
+            ->where('type', $validated['type'])
+            ->first();
 
         if ($integration) {
             $integration->update($validated);
         } else {
             $integration = new Integration($validated);
-            $integration->user_id = $user->id;
+            $integration->user_id = $userId;
             if (empty($validated['webhook_secret'])) {
                 $integration->webhook_secret = Str::random(32);
             }
             $integration->save();
         }
 
-        
-        // Construct the full URL using the APP_URL or current request
-        $routeName = ($integration->type === 'meta') ? 'webhooks.meta' : 'webhooks.wasender';
-        $integration->webhook_url = route($routeName, ['integration' => $integration->id]);
+        if ($integration->type === 'wa_sender') {
+            $integration->webhook_url = route('webhooks.wasender', ['integration' => $integration->id]);
+        } else {
+            $integration->webhook_url = route('webhooks.meta');
+        }
         $integration->save();
-
 
         return response()->json([
             'message' => 'Integration saved successfully',
             'integration' => $integration,
-            'webhook_url' => url("/api/webhooks/wasender/{$integration->id}")
+            'webhook_url' => $integration->webhook_url,
         ]);
     }
 
@@ -80,20 +81,18 @@ class IntegrationController extends Controller
         if ($integration->user_id !== $request->user()->id) {
             abort(403, 'Unauthorized action.');
         }
-        
+
         $validated = $request->validate([
-            'phone_number' => 'nullable|string',
-            'api_key' => 'sometimes|required|string',
+            'phone_number' => 'sometimes|required|string',
+            'api_key' => 'sometimes|nullable|string',
             'secret_key' => 'nullable|string',
             'webhook_secret' => 'nullable|string',
-            'app_id' => 'nullable|string',
-            'phone_number_id' => 'nullable|string',
-            'waba_id' => 'nullable|string',
+            'meta_phone_number_id' => 'nullable|string',
+            'meta_access_token' => 'nullable|string',
+            'meta_waba_id' => 'nullable|string',
         ]);
 
-
         $integration->update($validated);
-
         return $integration;
     }
 

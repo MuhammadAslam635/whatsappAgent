@@ -1,14 +1,13 @@
 import React, { memo, useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import metaIcon from '../../../assets/meta.png';
 import integrationService, { Integration } from '../../../api/integrationService';
 import { useToast } from '../../../store/ToastContext';
 
 const Modal = lazy(() => import('../../../components/ui/Modal/Modal'));
 const WaSenderForm = lazy(() => import('../../dashboard/components/WaSenderForm'));
-const MetaIntegrationForm = lazy(() => import('../../dashboard/components/MetaIntegrationForm'));
-
+const MetaForm = lazy(() => import('../../dashboard/components/MetaForm'));
 
 const WhatsAppIcon = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -29,44 +28,32 @@ const IntegrationCard: React.FC<{
   onIntegrate: () => void;
   isConnected?: boolean;
   isDisabled?: boolean;
-  disabledMessage?: string;
-}> = memo(({ title, description, icon: Icon, features, delay, onIntegrate, isConnected, isDisabled, disabledMessage }) => {
-
+}> = memo(({ title, description, icon: Icon, features, delay, onIntegrate, isConnected, isDisabled }) => {
   const { t } = useTranslation();
   return (
-    <div className={`p-4 md:p-5 rounded-[24px] md:rounded-[32px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_12px_30px_rgba(0,0,0,0.04)] transition-all duration-500 hover:scale-[1.01] group flex flex-col h-full animate-in fade-in slide-in-from-bottom-6 ${delay}`}>
-
+    <div className={`p-4 md:p-5 rounded-[24px] md:rounded-[32px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_12px_30px_rgba(0,0,0,0.04)] transition-all duration-500 hover:scale-[1.01] group flex flex-col h-full animate-in fade-in slide-in-from-bottom-6 ${delay} ${isDisabled ? 'opacity-50' : ''}`}>
       <div className="flex justify-between items-start mb-4">
         <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-accent/10 flex items-center justify-center text-accent group-hover:scale-110 transition-transform duration-500" style={{ backgroundColor: 'var(--accent)', color: 'white' }}>
           <Icon size={20} className="md:w-6 md:h-6" />
         </div>
-
         <div className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[7px] md:text-[9px] font-black uppercase tracking-widest border ${
-            isConnected 
+            isConnected
             ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/15'
+            : isDisabled
+            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/15'
             : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/15'
         }`}>
-          {isConnected ? 'Connected' : 'Available'}
+          {isConnected ? 'Connected' : isDisabled ? 'Switch Required' : 'Available'}
         </div>
-
       </div>
 
-      <h3 className="text-sm md:text-xl font-black text-slate-900 dark:text-white mb-1 md:mb-2 tracking-tight">
-        {title}
-      </h3>
-
-
-      <p className="text-slate-500 dark:text-slate-400 text-[10px] md:text-xs leading-relaxed mb-4 flex-grow line-clamp-2 md:line-clamp-none">
-        {description}
-      </p>
-
+      <h3 className="text-sm md:text-xl font-black text-slate-900 dark:text-white mb-1 md:mb-2 tracking-tight">{title}</h3>
+      <p className="text-slate-500 dark:text-slate-400 text-[10px] md:text-xs leading-relaxed mb-4 flex-grow line-clamp-2 md:line-clamp-none">{description}</p>
 
       <div className="space-y-2 md:space-y-3 mb-4 md:mb-6">
-        <h4 className="text-[7px] md:text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">
-          {t('settings.features')}
-        </h4>
+        <h4 className="text-[7px] md:text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">{t('settings.features')}</h4>
         <div className="space-y-1.5 md:space-y-2">
-          {features.slice(0, 3).map((feature, i) => (
+          {features.map((feature, i) => (
             <div key={i} className="flex items-center gap-2">
               <CheckCircle2 size={12} className="text-emerald-500 md:w-3.5 md:h-3.5" />
               <span className="text-[9px] md:text-[11px] font-bold text-slate-600 dark:text-slate-300 line-clamp-1">{feature}</span>
@@ -75,31 +62,21 @@ const IntegrationCard: React.FC<{
         </div>
       </div>
 
-
-      <button
-        onClick={onIntegrate}
-        disabled={isDisabled}
-        className={`w-full py-2 md:py-3 rounded-lg md:rounded-xl font-black text-[10px] md:text-xs flex items-center justify-center gap-2 shadow-md transition-all duration-300 group/btn ${
-          isDisabled 
-          ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-700 shadow-none' 
-          : 'bg-accent text-white shadow-accent/10 hover:shadow-accent/30 active:scale-[0.98]'
-        }`}
-        style={!isDisabled ? { backgroundColor: 'var(--accent)' } : {}}
-      >
-        <span>
-          {isDisabled ? 'Locked' : (isConnected ? (window.innerWidth < 640 ? 'Manage' : 'Manage Connection') : t('settings.integrate_button'))}
-        </span>
-        {!isDisabled && <ArrowRight size={14} className="md:w-4 md:h-4 group-hover/btn:translate-x-1 transition-transform" />}
-      </button>
-
-
-      {isDisabled && disabledMessage && (
-        <p className="mt-3 text-[10px] font-bold text-slate-400 text-center italic">
-          {disabledMessage}
-        </p>
+      {isDisabled ? (
+        <div className="w-full py-2 md:py-3 rounded-lg md:rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-black text-[10px] md:text-xs flex items-center justify-center gap-2">
+          <AlertCircle size={14} /> Other integration active
+        </div>
+      ) : (
+        <button
+          onClick={onIntegrate}
+          className="w-full py-2 md:py-3 rounded-lg md:rounded-xl bg-accent text-white font-black text-[10px] md:text-xs flex items-center justify-center gap-2 shadow-md shadow-accent/10 hover:shadow-accent/30 active:scale-[0.98] transition-all duration-300 group/btn"
+          style={{ backgroundColor: 'var(--accent)' }}
+        >
+          <span>{isConnected ? 'Manage Connection' : t('settings.integrate_button')}</span>
+          <ArrowRight size={14} className="md:w-4 md:h-4 group-hover/btn:translate-x-1 transition-transform" />
+        </button>
       )}
     </div>
-
   );
 });
 
@@ -110,7 +87,6 @@ const Settings: React.FC = memo(() => {
   const [isWaSenderModalOpen, setIsWaSenderModalOpen] = useState(false);
   const [isMetaModalOpen, setIsMetaModalOpen] = useState(false);
   const { error: showError } = useToast();
-
 
   const fetchIntegrations = useCallback(async () => {
     try {
@@ -131,6 +107,8 @@ const Settings: React.FC = memo(() => {
   const waSenderIntegration = integrations.find(i => i.type === 'wa_sender');
   const metaIntegration = integrations.find(i => i.type === 'meta');
 
+  const hasWaSender = !!waSenderIntegration;
+  const hasMeta = !!metaIntegration;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
@@ -145,43 +123,37 @@ const Settings: React.FC = memo(() => {
           {t('settings.title')}
         </h1>
         <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xl font-medium leading-relaxed">
-          {t('settings.subtitle')}
+          {t('settings.subtitle')} Choose either WaSender API or Meta Cloud API to send and receive WhatsApp messages.
         </p>
       </header>
 
       {isLoading ? (
-          <div className="flex flex-col items-center justify-center p-20 gap-3">
-              <Loader2 className="animate-spin text-accent" size={32} style={{ color: 'var(--accent)' }} />
-              <p className="text-xs font-bold text-slate-400">Loading configurations...</p>
-          </div>
+        <div className="flex flex-col items-center justify-center p-20 gap-3">
+          <Loader2 className="animate-spin text-accent" size={32} style={{ color: 'var(--accent)' }} />
+          <p className="text-xs font-bold text-slate-400">Loading configurations...</p>
+        </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-2 gap-4 md:gap-5 px-2 md:px-4">
-
-            <IntegrationCard
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 px-2 md:px-4">
+          <IntegrationCard
             title={t('settings.wa_send_title')}
             description={t('settings.wa_send_desc')}
             icon={WhatsAppIcon}
             features={t('settings.wa_features', { returnObjects: true }) as string[]}
             delay="delay-75"
             onIntegrate={() => setIsWaSenderModalOpen(true)}
-            isConnected={!!waSenderIntegration}
-            isDisabled={!!metaIntegration}
-            disabledMessage="You have an active Meta integration. Disconnect it to use WaSender."
-            />
-
-            <IntegrationCard
+            isConnected={hasWaSender}
+            isDisabled={hasMeta}
+          />
+          <IntegrationCard
             title={t('settings.meta_business_title')}
             description={t('settings.meta_business_desc')}
             icon={MetaIcon}
             features={t('settings.meta_features', { returnObjects: true }) as string[]}
             delay="delay-150"
             onIntegrate={() => setIsMetaModalOpen(true)}
-            isConnected={!!metaIntegration}
-            isDisabled={!!waSenderIntegration}
-            disabledMessage="You have an active WaSender integration. Disconnect it to use Meta."
-            />
-
-
+            isConnected={hasMeta}
+            isDisabled={hasWaSender}
+          />
         </div>
       )}
 
@@ -189,11 +161,11 @@ const Settings: React.FC = memo(() => {
         <Modal
           isOpen={isWaSenderModalOpen}
           onClose={() => setIsWaSenderModalOpen(false)}
-          title="WhatsApp Integration"
+          title="WhatsApp Integration — WaSender"
           maxWidth="max-w-3xl"
         >
-          <WaSenderForm 
-            onClose={() => setIsWaSenderModalOpen(false)} 
+          <WaSenderForm
+            onClose={() => setIsWaSenderModalOpen(false)}
             integration={waSenderIntegration}
             onRefresh={fetchIntegrations}
           />
@@ -202,11 +174,11 @@ const Settings: React.FC = memo(() => {
         <Modal
           isOpen={isMetaModalOpen}
           onClose={() => setIsMetaModalOpen(false)}
-          title="Meta WhatsApp Cloud API"
-          maxWidth="max-w-4xl"
+          title="WhatsApp Integration — Meta Cloud API"
+          maxWidth="max-w-3xl"
         >
-          <MetaIntegrationForm 
-            onClose={() => setIsMetaModalOpen(false)} 
+          <MetaForm
+            onClose={() => setIsMetaModalOpen(false)}
             integration={metaIntegration}
             onRefresh={fetchIntegrations}
           />

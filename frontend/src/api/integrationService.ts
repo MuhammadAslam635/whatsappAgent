@@ -7,11 +7,11 @@ export interface Integration {
   phone_number: string;
   webhook_url: string;
   webhook_secret?: string;
-  api_key: string;
+  api_key?: string;
   secret_key?: string;
-  app_id?: string;
-  phone_number_id?: string;
-  waba_id?: string;
+  meta_phone_number_id?: string;
+  meta_access_token?: string;
+  meta_waba_id?: string;
   created_at: string;
 }
 

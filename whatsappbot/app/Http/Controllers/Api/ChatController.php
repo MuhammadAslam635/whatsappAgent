@@ -8,8 +8,8 @@ use App\Models\Message;
 use App\Models\Contact;
 use App\Models\Integration;
 use App\Jobs\SendBulkMessageJob;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
@@ -90,8 +90,6 @@ class ChatController extends Controller
         }
 
         $conversation->update(['unread_count' => 0]);
-        
-        // Also mark all messages from 'contact' as 'read'
         $conversation->messages()->where('sender', 'contact')->update(['status' => 'read', 'read_at' => now()]);
 
         return response()->json(['message' => 'Conversation marked as read']);
@@ -102,12 +100,12 @@ class ChatController extends Controller
         $validated = $request->validate([
             'contact_id' => 'required|exists:contacts,id',
             'content' => 'nullable|string',
-            'attachment' => 'nullable|file|max:10240', // 10MB max
+            'attachment' => 'nullable|file|max:10240',
         ]);
 
         $user = $request->user();
         $contact = Contact::findOrFail($validated['contact_id']);
-        
+
         $attachmentPath = null;
         $type = 'text';
         $mediaUrl = null;
@@ -132,14 +130,16 @@ class ChatController extends Controller
                 'contact_id' => $contact->id,
             ]);
 
-            // Get integration
             $integration = Integration::where('user_id', $user->id)->first();
-            
+
             if (!$integration) {
                 return response()->json(['message' => 'No active WhatsApp integration found'], 400);
             }
 
-            // Store local message first as pending
+            $displayContent = $attachmentPath
+                ? ($content ? $content . " (📎 Attached: " . basename($attachmentPath) . ")" : "📎 Attached: " . basename($attachmentPath))
+                : $content;
+
             $message = Message::create([
                 'conversation_id' => $conversation->id,
                 'sender' => 'user',
@@ -150,43 +150,19 @@ class ChatController extends Controller
                 'status' => 'pending',
             ]);
 
-            // Integrate with WasenderAPI
-            try {
-                $payload = [
-                    'to' => $contact->phone_number,
-                    'text' => $content
-                ];
+            $result = WhatsAppService::sendMessage($integration, $contact->phone_number, $content, $mediaUrl);
 
-                if ($attachmentPath) {
-                    $payload['media'] = $mediaUrl;
-                }
-
-
-                $response = Http::withHeaders([
-                    'Authorization' => 'Bearer ' . $integration->api_key,
-                    'Accept' => 'application/json',
-                ])->post("https://api.wasenderapi.com/api/send-message", $payload);
-
-                if ($response->successful()) {
-                    $data = $response->json();
-                    $waId = $data['data']['msgId'] ?? null;
-                    
-                    $message->update([
-                        'whatsapp_message_id' => $waId,
-                        'status' => 'sent'
-                    ]);
-
-                    $conversation->update(['last_message_at' => now()]);
-
-                    return response()->json($message);
-                } else {
-                    $message->update(['status' => 'failed']);
-                    return response()->json(['message' => 'Failed to send message via WhatsApp', 'error' => $response->json()], 500);
-                }
-            } catch (\Exception $e) {
-                $message->update(['status' => 'failed']);
-                return response()->json(['message' => 'Error contacting WhatsApp service'], 500);
+            if ($result['success']) {
+                $message->update([
+                    'whatsapp_message_id' => $result['message_id'],
+                    'status' => 'sent',
+                ]);
+                $conversation->update(['last_message_at' => now()]);
+                return response()->json($message);
             }
+
+            $message->update(['status' => 'failed']);
+            return response()->json(['message' => 'Failed to send message via WhatsApp', 'error' => $result['error'] ?? 'Unknown error'], 500);
         });
     }
 
@@ -205,8 +181,6 @@ class ChatController extends Controller
             return response()->json(['message' => 'No active WhatsApp integration found'], 400);
         }
 
-        // We dispatch jobs for each contact. 
-        // This is the "Senior" way to handle it: one job per message allows parallel processing and individual retries.
         foreach ($validated['contact_ids'] as $contactId) {
             $contact = Contact::find($contactId);
             if ($contact) {
@@ -216,7 +190,7 @@ class ChatController extends Controller
 
         return response()->json([
             'message' => 'Bulk messaging queued successfully.',
-            'count' => count($validated['contact_ids'])
+            'count' => count($validated['contact_ids']),
         ]);
     }
 
