@@ -127,26 +127,32 @@ const KnowledgeBaseSettings: React.FC = memo(() => {
             {/* Header */}
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-2 shrink-0 mb-4">
                 <div>
-                    <h1 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
-                        <BrainCircuit className="text-accent" size={32} />
-                        AI Auto-Reply Bot
+                    <h1 className="text-lg md:text-2xl font-black text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
+                        <BrainCircuit size={24} className="text-accent md:w-8 md:h-8" />
+
+                        AI Bot
                     </h1>
+
                     <p className="text-slate-500 dark:text-slate-400 mt-0.5 font-medium text-xs md:text-sm">
                         Manage your RAG Knowledge Base and configure bot behavior.
                     </p>
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 min-h-0">
+            <div className="grid grid-cols-2 lg:grid-cols-12 gap-3 md:gap-4 flex-1 min-h-0">
+
                 {/* Left Column: Settings */}
-                <div className="lg:col-span-5 flex flex-col gap-4 overflow-y-auto pr-1">
-                    <div className="p-4 md:p-6 rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_20px_0_rgba(31,38,135,0.06)] ring-1 ring-white/30">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                <Bot className="text-accent" />
-                                Bot Configuration
+                <div className="col-span-1 lg:col-span-5 flex flex-col gap-3 md:gap-4 overflow-y-auto pr-1">
+                    <div className="p-3 md:p-6 rounded-2xl md:rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_20px_0_rgba(31,38,135,0.06)] ring-1 ring-white/30">
+
+                        <div className="flex items-center justify-between mb-3 md:mb-4">
+                            <h2 className="text-sm md:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                <Bot size={16} className="text-accent md:w-5 md:h-5" />
+                                Config
                             </h2>
+
                         </div>
+
                         
                         {loadingSettings ? (
                             <div className="flex items-center justify-center h-40">
@@ -155,49 +161,49 @@ const KnowledgeBaseSettings: React.FC = memo(() => {
                         ) : (
                             <div className="space-y-6">
                                 {/* Toggle */}
-                                <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                                    <div>
-                                        <h3 className="text-sm font-bold text-slate-800 dark:text-white">Enable Auto-Reply</h3>
-                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                            When enabled, the AI will reply to incoming WhatsApp messages using the uploaded documents.
-                                        </p>
+                                <div className="flex flex-col gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                    <div className="flex items-center justify-between w-full">
+                                        <h3 className="text-[11px] md:text-sm font-bold text-slate-800 dark:text-white">Enable Bot</h3>
+                                        <label className="relative inline-flex items-center cursor-pointer shrink-0 scale-75 md:scale-100">
+                                            <input 
+                                                type="checkbox" 
+                                                className="sr-only peer" 
+                                                checked={botActive}
+                                                onChange={(e) => setBotActive(e.target.checked)}
+                                            />
+                                            <div className="w-12 h-6 md:w-14 md:h-7 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 md:after:h-6 md:after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-accent shadow-inner"></div>
+                                        </label>
                                     </div>
-                                    <label className="relative inline-flex items-center cursor-pointer ml-4 shrink-0">
-                                        <input 
-                                            type="checkbox" 
-                                            className="sr-only peer" 
-                                            checked={botActive}
-                                            onChange={(e) => setBotActive(e.target.checked)}
-                                        />
-                                        <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-accent shadow-inner"></div>
-                                    </label>
+                                    <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-tight">
+                                        AI will reply to WhatsApp using knowledge base.
+                                    </p>
                                 </div>
 
+
                                 {/* System Prompt */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
-                                        Custom System Prompt
+                                <div className="space-y-1.5 md:space-y-2">
+                                    <label className="block text-[11px] md:text-sm font-bold text-slate-700 dark:text-slate-300">
+                                        System Prompt
                                     </label>
                                     <textarea
                                         value={prompt}
                                         onChange={(e) => setPrompt(e.target.value)}
-                                        placeholder="e.g. Act as a friendly customer support agent named Sarah."
-                                        rows={3}
-                                        className="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent dark:text-white transition-all resize-none"
+                                        placeholder="e.g. Chat bot..."
+                                        rows={2}
+                                        className="w-full px-2 py-1.5 text-[10px] md:text-sm rounded-lg md:rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent dark:text-white transition-all resize-none"
                                     />
-                                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                                        Provide explicit instructions on how the bot should behave or format its answers.
-                                    </p>
                                 </div>
+
 
                                 <button
                                     onClick={handleSaveSettings}
                                     disabled={savingSettings}
-                                    className="w-full h-10 flex items-center justify-center gap-2 bg-accent text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+                                    className="w-full h-8 md:h-10 flex items-center justify-center gap-2 bg-accent text-white text-[11px] md:text-sm font-bold rounded-lg md:rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
                                 >
-                                    {savingSettings ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                    Save Settings
+                                    {savingSettings ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 md:w-4 md:h-4" />}
+                                    Save
                                 </button>
+
                             </div>
                         )}
                     </div>
@@ -214,17 +220,21 @@ const KnowledgeBaseSettings: React.FC = memo(() => {
                 </div>
 
                 {/* Right Column: Knowledge Base */}
-                <div className="lg:col-span-7">
-                    <div className="p-4 md:p-6 rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_20px_0_rgba(31,38,135,0.06)] ring-1 ring-white/30 h-full flex flex-col">
+                <div className="col-span-1 lg:col-span-7">
+                    <div className="p-3 md:p-6 rounded-2xl md:rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_4px_20px_0_rgba(31,38,135,0.06)] ring-1 ring-white/30 h-full flex flex-col">
+
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
                             <div>
-                                <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                    <FileText className="text-accent" />
-                                    Knowledge Base
+                                <h2 className="text-sm md:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                    <FileText size={16} className="text-accent md:w-5 md:h-5" />
+                                    Docs
                                 </h2>
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                    PDFs currently loaded into the AI's memory.
+
+
+                                <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                    {documents.length} Loaded into AI memory.
                                 </p>
+
                             </div>
 
                             {/* Upload Button */}
@@ -238,11 +248,12 @@ const KnowledgeBaseSettings: React.FC = memo(() => {
                             <button
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={uploading}
-                                className="shrink-0 h-9 px-3 flex items-center gap-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                                className="shrink-0 h-7 md:h-9 px-2 md:px-3 flex items-center gap-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] md:text-sm font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
                             >
-                                {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
-                                {uploading ? 'Processing...' : 'Upload PDF'}
+                                {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <UploadCloud className="w-3 h-3 md:w-3.5 md:h-3.5" />}
+                                {uploading ? '...' : 'Upload'}
                             </button>
+
                         </div>
 
                         {/* Document List - Scrollable */}
@@ -263,32 +274,36 @@ const KnowledgeBaseSettings: React.FC = memo(() => {
                                     {documents.map((doc, idx) => (
                                         <div 
                                             key={idx} 
-                                            className="group flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/50 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-700/50 transition-colors gap-3"
+                                            className="group flex flex-col p-2 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/50 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-700/50 transition-colors gap-2"
                                         >
-                                            <div className="flex items-start gap-2.5 overflow-hidden">
-                                                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                                                    <FileText className="w-4 h-4 text-accent" />
+                                            <div className="flex items-start gap-2 overflow-hidden w-full">
+                                                <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                                                    <FileText className="w-3 h-3 md:w-4 md:h-4 text-accent" />
                                                 </div>
-                                                <div className="min-w-0">
-                                                    <h4 className="text-sm font-bold text-slate-800 dark:text-white truncate" title={doc.document_name}>
+                                                <div className="min-w-0 flex-1">
+                                                    <h4 className="text-[11px] md:text-sm font-bold text-slate-800 dark:text-white truncate" title={doc.document_name}>
                                                         {doc.document_name}
                                                     </h4>
-                                                    <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-500 font-mono">
-                                                        <span>{new Date(doc.uploaded_at).toLocaleDateString()}</span>
-                                                        <span>•</span>
-                                                        <span className="text-accent/80">{doc.chunks} Embeddings</span>
-                                                    </div>
                                                 </div>
                                             </div>
-                                            
-                                            <button
-                                                onClick={() => handleDeleteDoc(doc.document_name)}
-                                                disabled={deletingDoc === doc.document_name}
-                                                className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white dark:bg-red-500/10 dark:hover:bg-red-500 dark:hover:text-white transition-colors disabled:opacity-50 ml-auto sm:ml-0"
-                                            >
-                                                {deletingDoc === doc.document_name ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                                            </button>
+
+                                            <div className="flex items-center justify-between mt-1">
+
+                                                <div className="flex items-center gap-1.5 text-[8px] md:text-[10px] text-slate-500 font-mono">
+                                                    <span>{new Date(doc.uploaded_at).toLocaleDateString()}</span>
+                                                    <span className="text-accent/80 font-black">{doc.chunks} Chunk</span>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => handleDeleteDoc(doc.document_name)}
+                                                    disabled={deletingDoc === doc.document_name}
+                                                    className="shrink-0 w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white dark:bg-red-500/10 dark:hover:bg-red-500 dark:hover:text-white transition-colors disabled:opacity-50"
+                                                >
+                                                    {deletingDoc === doc.document_name ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />}
+                                                </button>
+                                            </div>
                                         </div>
+
                                     ))}
                                 </div>
                             )}

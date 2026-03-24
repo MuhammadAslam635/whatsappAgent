@@ -146,9 +146,10 @@ const BulkMessagePage: React.FC = () => {
                         <Send size={24} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
+                        <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
                             Broadcast Center
                         </h1>
+
                         <div className="flex items-center gap-2">
                             <span className="w-6 h-[2px] rounded-full bg-accent" style={{ backgroundColor: 'var(--accent)' }} />
                             <p className="text-slate-500 dark:text-slate-400 font-black uppercase text-[9px] tracking-[0.2em]">Operational Intelligence</p>
@@ -242,9 +243,10 @@ const BulkMessagePage: React.FC = () => {
                                         </div>
                                         
                                         <div className="flex-1 min-w-0">
-                                            <p className={`text-[12px] font-black tracking-tight truncate ${selectedIds.has(contact.id) ? 'text-accent' : 'text-slate-900 dark:text-white'}`} style={selectedIds.has(contact.id) ? { color: 'var(--accent)' } : {}}>
+                                            <p className={`text-[10px] md:text-[12px] font-black tracking-tight truncate ${selectedIds.has(contact.id) ? 'text-accent' : 'text-slate-900 dark:text-white'}`} style={selectedIds.has(contact.id) ? { color: 'var(--accent)' } : {}}>
                                                 {contact.name}
                                             </p>
+
                                             <p className="text-[9px] font-bold text-slate-400/80 truncate tracking-tighter">
                                                 {formatPhoneNumber(contact.phone_number)}
                                             </p>
@@ -323,7 +325,8 @@ const BulkMessagePage: React.FC = () => {
             </div>
 
             {/* Liquid Stat Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 relative z-10">
+
                 {[
                     { icon: CheckCircle2, label: 'Safety Protocols', text: 'Anti-spam active.', color: 'emerald' },
                     { icon: Users, label: 'Omni-Reach', text: '2k capacity.', color: 'accent' },

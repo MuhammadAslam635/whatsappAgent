@@ -1,7 +1,9 @@
 import React, { memo, useEffect, useRef } from 'react';
-import { Phone, Video, MoreVertical, Check, CheckCheck, Clock, User, AlertCircle } from 'lucide-react';
+import { Phone, Video, MoreVertical, Check, CheckCheck, Clock, User, AlertCircle, FileText, Image as ImageIcon, PlayCircle, Music } from 'lucide-react';
+
 import { Message, Conversation } from '@/api/chatService';
 import { format } from 'date-fns';
+import { BASE_URL } from '@/api/endpoints';
 
 interface ChatWindowProps {
   conversation?: Conversation;
@@ -155,34 +157,89 @@ const ChatWindow: React.FC<ChatWindowProps> = memo(({
                 </div>
               )}
               
-              <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} group animate-in slide-in-from-bottom-2 duration-200`}>
-                <div className={`max-w-[85%] md:max-w-[65%] relative px-3 py-1.5 shadow-sm transition-all duration-300 ${
-                  isUser 
-                    ? 'bg-accent text-white rounded-lg rounded-tr-none' 
-                    : 'bg-white dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] rounded-lg rounded-tl-none'
-                }`} style={isUser ? { backgroundColor: 'var(--accent)' } : {}}>
-                  <p className="text-sm font-medium leading-relaxed break-words">
-                    {msg.content}
-                  </p>
-                    {isUser && (
-                      <div className="flex items-center gap-0.5 mt-1">
-                        <span className="text-[9px] font-bold uppercase tracking-tighter text-white/70">
-                          {format(new Date(msg.created_at), 'HH:mm')}
-                        </span>
-                        <div className="ml-1 flex items-center">
-                          {/* <span className="text-[7px] mr-1 opacity-50">{msg.status}</span> */}
-                          {msg.status === 'pending' ? <Clock size={10} className="text-white/50" /> : 
-                           msg.status === 'failed' ? <AlertCircle size={10} className="text-red-300" /> :
-                           msg.status === 'sent' ? <Check size={10} className="text-white/70" /> : 
-                           <CheckCheck 
-                             size={12} 
-                             className={msg.status === 'read' ? 'text-blue-300' : 'text-white/70'} 
-                           />}
+              {(() => {
+                const resolvedMediaUrl = msg.media_url 
+                  ? (msg.media_url.startsWith('http') ? msg.media_url : `${BASE_URL}${msg.media_url}`) 
+                  : null;
+
+                return (
+                  <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} group animate-in slide-in-from-bottom-2 duration-200`}>
+                    <div className={`max-w-[85%] md:max-w-[65%] relative px-3 py-1.5 shadow-sm transition-all duration-300 ${
+                      isUser 
+                        ? 'bg-accent text-white rounded-lg rounded-tr-none' 
+                        : 'bg-white dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] rounded-lg rounded-tl-none'
+                    }`} style={isUser ? { backgroundColor: 'var(--accent)' } : {}}>
+                      
+                      {msg.type === 'image' && resolvedMediaUrl && (
+                        <div className="mb-1.5 -mx-1 -mt-0.5 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 bg-slate-100 dark:bg-slate-800">
+                          <img 
+                            src={resolvedMediaUrl} 
+                            alt="Shared" 
+                            className="w-full max-h-72 object-cover cursor-pointer hover:opacity-95 transition-opacity select-none" 
+                            onClick={() => window.open(resolvedMediaUrl!, '_blank')} 
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
                         </div>
-                      </div>
-                    )}
-                </div>
-              </div>
+                      )}
+
+                      {msg.type === 'video' && resolvedMediaUrl && (
+                        <div className="mb-1.5 -mx-1 -mt-0.5 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 bg-slate-100 dark:bg-slate-800">
+                          <video src={resolvedMediaUrl} controls className="w-full max-h-72 object-cover" />
+                        </div>
+                      )}
+
+                      {msg.type === 'audio' && resolvedMediaUrl && (
+                        <div className="mb-2 py-1">
+                           <audio src={resolvedMediaUrl} controls className="w-full h-8 scale-90 origin-left invert dark:invert-0 opacity-80" />
+                        </div>
+                      )}
+
+                      {msg.type === 'document' && resolvedMediaUrl && (
+                        <div className="mb-2 p-2 rounded-lg bg-black/5 dark:bg-white/5 flex items-center gap-3 border border-black/10 dark:border-white/10 min-w-[200px]">
+                           <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center text-accent">
+                              <FileText size={20} /> 
+                           </div>
+                           <div className="flex-1 overflow-hidden">
+                              <p className="text-xs font-bold truncate max-w-full">{msg.content || 'Document'}</p>
+                              <a href={resolvedMediaUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-accent font-black uppercase hover:underline mt-0.5 block">Download File</a>
+                           </div>
+                        </div>
+                      )}
+
+
+                      {msg.type === 'sticker' && resolvedMediaUrl && (
+                        <div className="mb-1.5 py-1 flex justify-center">
+                          <img src={resolvedMediaUrl} alt="Sticker" className="w-32 h-32 object-contain" />
+                        </div>
+                      )}
+
+                      {(msg.type === 'text' || (msg.type !== 'text' && msg.content && msg.content !== '[Media Message]')) && (
+                        <p className="text-sm font-medium leading-relaxed break-words">
+                          {msg.content}
+                        </p>
+                      )}
+
+                        {isUser && (
+                          <div className="flex items-center gap-0.5 mt-1">
+                            <span className="text-[9px] font-bold uppercase tracking-tighter text-white/70">
+                              {format(new Date(msg.created_at), 'HH:mm')}
+                            </span>
+                            <div className="ml-1 flex items-center">
+                              {/* <span className="text-[7px] mr-1 opacity-50">{msg.status}</span> */}
+                              {msg.status === 'pending' ? <Clock size={10} className="text-white/50" /> : 
+                               msg.status === 'failed' ? <AlertCircle size={10} className="text-red-300" /> :
+                               msg.status === 'sent' ? <Check size={10} className="text-white/70" /> : 
+                               <CheckCheck 
+                                 size={12} 
+                                 className={msg.status === 'read' ? 'text-blue-300' : 'text-white/70'} 
+                               />}
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  </div>
+                );
+              })()}
             </React.Fragment>
           );
         })}

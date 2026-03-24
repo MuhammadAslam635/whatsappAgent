@@ -1,5 +1,9 @@
 import React, { FC, useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
+
+import axios from '@/api/axios';
 import { Phone, Video, MoreVertical, Check, CheckCheck, Clock, User, Shield, Ban } from 'lucide-react';
+
 import chatService, { Conversation, Message } from '@/api/chatService';
 import contactService, { Contact } from '@/api/contactService';
 import { formatPhoneNumber } from '@/lib/utils';
@@ -26,7 +30,13 @@ const ChatPage: FC = () => {
   
   const [isLoadingConvs, setIsLoadingConvs] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isLoadingIntegrations, setIsLoadingIntegrations] = useState(true);
+  const [hasIntegration, setHasIntegration] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryId = searchParams.get('id');
   const [search, setSearch] = useState('');
+
+
   
   const toast = useToast();
   const pollInterval = useRef<number | null>(null);
@@ -55,6 +65,19 @@ const ChatPage: FC = () => {
       console.error('Failed to fetch contacts', err);
     }
   }, []);
+
+  const fetchIntegrationStatus = useCallback(async () => {
+    try {
+      const response = await axios.get('/integrations');
+      setHasIntegration(response.data.length > 0);
+    } catch (err) {
+      console.error('Failed to fetch integration status', err);
+    } finally {
+      setIsLoadingIntegrations(false);
+    }
+  }, []);
+
+
 
   const fetchMessages = useCallback(async (convId: number) => {
     if (convId === -1) return;
@@ -106,7 +129,9 @@ const ChatPage: FC = () => {
   useEffect(() => {
     fetchConversations();
     fetchContacts();
-  }, [fetchConversations, fetchContacts]);
+    fetchIntegrationStatus();
+  }, [fetchConversations, fetchContacts, fetchIntegrationStatus]);
+
 
   useEffect(() => {
     if (pollInterval.current) clearInterval(pollInterval.current);
@@ -139,6 +164,13 @@ const ChatPage: FC = () => {
       }
     }
   }, [conversations, fetchMessages]);
+
+  useEffect(() => {
+    if (queryId && conversations.length > 0 && (!selectedConv || selectedConv.id !== parseInt(queryId))) {
+      handleSelectConversation(parseInt(queryId));
+    }
+  }, [queryId, conversations, handleSelectConversation, selectedConv]);
+
 
   const handleSelectContactForChat = useCallback((contact: Contact) => {
     let conv = conversations.find((c: Conversation) => c.contact_id === contact.id);
@@ -243,8 +275,31 @@ const ChatPage: FC = () => {
     );
   }, [conversations, search]);
 
+  if (!isLoadingIntegrations && !hasIntegration) {
+      return (
+          <div className="h-full flex flex-col items-center justify-center bg-white dark:bg-[#111b21] rounded-3xl overflow-hidden shadow-2xl p-12 text-center">
+              <div className="w-24 h-24 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-500 mb-8 animate-bounce">
+                  <Shield size={48} />
+              </div>
+              <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter">WhatsApp Not Integrated</h2>
+              <p className="text-slate-500 dark:text-slate-400 max-w-md mb-10 font-medium leading-relaxed">
+                  To start chatting, you need to connect your WhatsApp account via WaSender or Meta Cloud API in the settings.
+              </p>
+              <a 
+                href="/settings" 
+                className="px-10 py-4 bg-accent text-white rounded-2xl font-black shadow-xl shadow-accent/20 hover:scale-105 active:scale-95 transition-all uppercase tracking-widest text-xs"
+                style={{ backgroundColor: 'var(--accent)' }}
+              >
+                  Go to Settings
+              </a>
+          </div>
+      );
+  }
+
   return (
     <div className="h-full flex bg-white dark:bg-[#111b21] rounded-3xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-700">
+
+
       <div className="w-full md:w-[350px] lg:w-[450px] flex-shrink-0 relative overflow-hidden border-r border-[#e9edef] dark:border-[#202c33] flex flex-col min-h-0">
         {view === 'chats' ? (
           <ChatSidebar 

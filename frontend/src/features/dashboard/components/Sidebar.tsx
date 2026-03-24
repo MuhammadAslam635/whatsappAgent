@@ -1,6 +1,7 @@
 import React, { memo, useMemo, useCallback, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, MessageSquare, Upload, Settings, LogOut, Send, Bot, Loader2 } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Upload, Settings, LogOut, Send, Bot, Loader2, X } from 'lucide-react';
+
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../store/AuthContext';
 
@@ -13,9 +14,10 @@ interface SidebarItem {
 
 interface SidebarProps {
   position?: 'left' | 'right';
-  // activeTab: string; // Removed as NavLink handles active state
-  // onTabChange: (id: string) => void; // Removed as NavLink handles navigation
+  isOpen?: boolean;
+  onClose?: () => void;
 }
+
 
 const SidebarItemComponent: React.FC<{
   item: SidebarItem;
@@ -51,7 +53,8 @@ const SidebarItemComponent: React.FC<{
 
 SidebarItemComponent.displayName = 'SidebarItemComponent';
 
-const Sidebar: React.FC<SidebarProps> = memo(({ position = 'left' }) => { // Removed activeTab, onTabChange from props
+const Sidebar: React.FC<SidebarProps> = memo(({ position = 'left', isOpen, onClose }) => {
+
   const { t } = useTranslation();
 
   const items: SidebarItem[] = useMemo(() => [
@@ -78,9 +81,23 @@ const Sidebar: React.FC<SidebarProps> = memo(({ position = 'left' }) => { // Rem
 
   return (
     <aside
-      className={`fixed top-0 h-screen w-16 md:w-24 bg-accent flex flex-col items-center py-6 md:py-10 shadow-2xl z-100 transition-all duration-300 ${position === 'left' ? 'left-0 rounded-r-4xl md:rounded-r-4xl' : 'right-0 rounded-l-4xl md:rounded-l-4xl'}`}
+      className={`fixed top-0 h-screen w-20 md:w-24 bg-accent flex flex-col items-center py-6 md:py-10 shadow-2xl z-[100] transition-all duration-500 overflow-y-auto scrollbar-hide
+        ${position === 'left' ? 'left-0 rounded-r-[40px]' : 'right-0 rounded-l-[40px]'}
+        ${isOpen ? 'translate-x-0' : (position === 'left' ? '-translate-x-full' : 'translate-x-full')} lg:translate-x-0
+      `}
+
       style={{ backgroundColor: 'var(--accent)' }}
     >
+      {/* Mobile Close Button */}
+      {onClose && (
+        <button 
+          onClick={onClose}
+          className="lg:hidden absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
+        >
+          <X size={20} />
+        </button>
+      )}
+
       {/* Logo Section */}
       <div className="mb-10 md:mb-16">
         <NavLink to="/" className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center shadow-lg transition-transform hover:rotate-12">

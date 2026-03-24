@@ -9,8 +9,12 @@ export interface Integration {
   webhook_secret?: string;
   api_key: string;
   secret_key?: string;
+  app_id?: string;
+  phone_number_id?: string;
+  waba_id?: string;
   created_at: string;
 }
+
 
 const integrationService = {
   async getAll(): Promise<Integration[]> {

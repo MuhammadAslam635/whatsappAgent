@@ -44,9 +44,12 @@ const contactService = {
     await axios.delete('/contacts/bulk', { data: { ids } });
   },
 
-  bulkUpload: async (file: File) => {
+  bulkUpload: async (file: File, defaultCountry?: string): Promise<{ message: string; errors: string[]; count: number }> => {
     const formData = new FormData();
     formData.append('file', file);
+    if (defaultCountry) {
+      formData.append('default_country', defaultCountry);
+    }
     const response = await axios.post('/contacts/bulk', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',

@@ -23,4 +23,16 @@ class Contact extends Model
     {
         return $this->hasMany(Conversation::class);
     }
+
+    protected static function booted()
+    {
+        static::saved(function ($contact) {
+            \Illuminate\Support\Facades\Cache::forget("contact_lookup_{$contact->user_id}_{$contact->phone_number}");
+        });
+
+        static::deleted(function ($contact) {
+            \Illuminate\Support\Facades\Cache::forget("contact_lookup_{$contact->user_id}_{$contact->phone_number}");
+        });
+    }
 }
+

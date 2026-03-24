@@ -15,7 +15,11 @@ class Integration extends Model
         'webhook_url',
         'api_key',
         'secret_key',
+        'app_id',
+        'phone_number_id',
+        'waba_id',
     ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

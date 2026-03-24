@@ -3,6 +3,8 @@ import { Upload, X, FileText, Loader2, AlertCircle, CheckCircle2 } from 'lucide-
 import contactService from '@/api/contactService';
 import Button from '@/components/ui/Button/Button';
 import { useToast } from '@/store/ToastContext';
+import { getCountries, getCountryCallingCode } from 'react-phone-number-input';
+import en from 'react-phone-number-input/locale/en';
 
 interface BulkUploadProps {
   onClose: () => void;
@@ -11,9 +13,12 @@ interface BulkUploadProps {
 
 const BulkUpload: React.FC<BulkUploadProps> = memo(({ onClose, onRefresh }) => {
   const [file, setFile] = useState<File | null>(null);
+  const [defaultCountry, setDefaultCountry] = useState('PK');
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<{ message: string; errors: string[]; count: number } | null>(null);
   const { success: showSuccess, error: showError } = useToast();
+  
+  const countries = getCountries();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -30,7 +35,7 @@ const BulkUpload: React.FC<BulkUploadProps> = memo(({ onClose, onRefresh }) => {
     setIsLoading(true);
 
     try {
-      const response = await contactService.bulkUpload(file);
+      const response = await contactService.bulkUpload(file, defaultCountry);
       setResults(response);
       showSuccess(`Successfully uploaded ${response.count} contacts.`);
       onRefresh();
@@ -39,7 +44,7 @@ const BulkUpload: React.FC<BulkUploadProps> = memo(({ onClose, onRefresh }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [file, onRefresh, showSuccess, showError]);
+  }, [file, defaultCountry, onRefresh, showSuccess, showError]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -90,6 +95,24 @@ const BulkUpload: React.FC<BulkUploadProps> = memo(({ onClose, onRefresh }) => {
                 {file ? `${(file.size / 1024).toFixed(1)} KB` : 'Maximum file size: 2MB'}
               </p>
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-[#54656f] dark:text-[#8696a0] ml-1 uppercase tracking-wider">Default Country (Fallback)</label>
+            <select
+              value={defaultCountry}
+              onChange={(e) => setDefaultCountry(e.target.value)}
+              className="w-full px-4 py-3 bg-white dark:bg-[#2a3942] border border-[#e9edef] dark:border-[#2a3942] rounded-xl text-[15px] focus:ring-0 focus:border-accent outline-none transition-all text-[#111b21] dark:text-[#e9edef] appearance-none cursor-pointer"
+            >
+              {countries.map((country) => (
+                <option key={country} value={country}>
+                  {en[country]} (+{getCountryCallingCode(country)})
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium italic">
+              * Used if CSV number doesn't have a country code
+            </p>
           </div>
 
           <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex gap-3">

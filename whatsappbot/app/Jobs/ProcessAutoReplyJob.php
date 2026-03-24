@@ -26,7 +26,22 @@ class ProcessAutoReplyJob implements ShouldQueue
     public $phone;
 
     /**
+     * The number of times the job may be attempted.
+     *
+     * @var int
+     */
+    public $tries = 5;
+
+    /**
+     * The number of seconds to wait before retrying the job.
+     *
+     * @var int
+     */
+    public $backoff = [60, 120, 240, 480]; // Wait 1m, 2m, 4m, 8m on failure
+
+    /**
      * Create a new job instance.
+
      */
     public function __construct(Integration $integration, Conversation $conversation, string $content, string $phone)
     {
@@ -96,11 +111,24 @@ class ProcessAutoReplyJob implements ShouldQueue
                     'content' => $replyText,
                     'status' => 'sent',
                 ]);
+            } elseif ($response->status() === 429) {
+                Log::warning("[JOB RATE LIMIT] Wasender rate limit hit. Retrying...", ['body' => $response->body()]);
+                throw new \Exception("Wasender Rate Limit: " . $response->json('message', 'Too many requests'));
             } else {
                 Log::error("[JOB ERROR] Wasender failed", ['body' => $response->body()]);
+                // For other errors, we might not want to retry, but let's just log it.
             }
         } catch (\Exception $e) {
+            // If it's a rate limit from OpenAI, rethrow to trigger queue retry
+            if (str_contains($e->getMessage(), 'rate limit') || str_contains($e->getMessage(), 'Rate limit')) {
+                Log::warning("[JOB RATE LIMIT] OpenAI rate limit hit. Retrying...", ['msg' => $e->getMessage()]);
+                throw $e;
+            }
+
             Log::error("[JOB EXCEPTION] " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            // Re-throw so the job is marked as failed and can be retried if it's potentially transient
+            throw $e;
         }
     }
+
 }

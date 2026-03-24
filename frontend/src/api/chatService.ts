@@ -6,7 +6,11 @@ export interface Message {
   whatsapp_message_id: string | null;
   sender: 'user' | 'contact';
   content: string;
+  type: string;
+  media_url: string | null;
+  caption: string | null;
   status: 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
+
   delivered_at: string | null;
   read_at: string | null;
   created_at: string;
@@ -83,6 +87,18 @@ const chatService = {
   deleteConversation: async (conversationId: number): Promise<void> => {
     await axios.delete(`/conversations/${conversationId}`);
   },
+  
+  getUnreadCount: async (): Promise<{ unread_count: number }> => {
+    const response = await axios.get('/conversations/unread-count');
+    return response.data;
+  },
+
+  getUnreadConversations: async (): Promise<Conversation[]> => {
+    const response = await axios.get('/conversations/unread');
+    return response.data;
+  },
 };
+
+
 
 export default chatService;

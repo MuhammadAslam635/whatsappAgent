@@ -30,5 +30,15 @@ class UserSeeder extends Seeder
                 'whatsapp_connection' => 'meta',
             ]
         );
+
+        User::updateOrCreate(
+            ['email' => 'newuser@test.com'],
+            [
+                'name' => 'New User',
+                'password' => Hash::make('password'),
+                'whatsapp_connection' => 'wasenderapi',
+            ]
+        );
+
     }
 }

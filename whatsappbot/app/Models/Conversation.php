@@ -32,4 +32,28 @@ class Conversation extends Model
     {
         return $this->hasMany(Message::class);
     }
+
+    protected static function booted()
+    {
+        $clearCaches = function ($conv) {
+            // Invalidate individual lookup cache
+            \Illuminate\Support\Facades\Cache::forget("conv_lookup_{$conv->user_id}_{$conv->contact_id}");
+            
+            // Increment version to invalidate ALL paginated list cache for this user
+            $listKey = "conv_list_version_{$conv->user_id}";
+            \Illuminate\Support\Facades\Cache::forever($listKey, (int)\Illuminate\Support\Facades\Cache::get($listKey, 0) + 1);
+
+
+            // Also clear dashboard stats for this user
+            $ranges = ['daily', 'weekly', 'monthly', 'yearly'];
+            foreach ($ranges as $range) {
+                \Illuminate\Support\Facades\Cache::forget("user_stats_{$conv->user_id}_{$range}");
+            }
+        };
+
+        static::saved($clearCaches);
+        static::deleted($clearCaches);
+    }
 }
+
+

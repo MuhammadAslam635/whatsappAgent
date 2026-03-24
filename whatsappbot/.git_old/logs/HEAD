@@ -1,6 +1,0 @@
-0000000000000000000000000000000000000000 7f6573b3975a42f2f3c07dd907a041f499f5e7ac cyberifydevelopers <cyberifydevelopers@gmail.com> 1773656598 +0500	commit (initial): Set up a fresh Laravel app
-7f6573b3975a42f2f3c07dd907a041f499f5e7ac 0000000000000000000000000000000000000000 cyberifydevelopers <cyberifydevelopers@gmail.com> 1773656599 +0500	Branch: renamed refs/heads/master to refs/heads/main
-0000000000000000000000000000000000000000 7f6573b3975a42f2f3c07dd907a041f499f5e7ac cyberifydevelopers <cyberifydevelopers@gmail.com> 1773656599 +0500	Branch: renamed refs/heads/master to refs/heads/main
-7f6573b3975a42f2f3c07dd907a041f499f5e7ac 10a04d5082024ee3c6d736a4d5f263493a06248e cyberifydevelopers <cyberifydevelopers@gmail.com> 1773656664 +0500	commit: Install Pest
-10a04d5082024ee3c6d736a4d5f263493a06248e 229f060202efd4cf7c0a7fb9ce63f8aa4e3159e9 cyberifydevelopers <cyberifydevelopers@gmail.com> 1773656691 +0500	commit: Install Laravel Boost
-229f060202efd4cf7c0a7fb9ce63f8aa4e3159e9 52b1cb047abeb329de1d6cf9c43fe1bfbb1b292d cyberifydevelopers <cyberifydevelopers@gmail.com> 1773656712 +0500	commit: Configure Boost post-update script

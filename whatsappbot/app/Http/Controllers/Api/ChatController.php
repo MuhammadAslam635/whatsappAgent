@@ -15,14 +15,46 @@ use Illuminate\Support\Facades\DB;
 
 class ChatController extends Controller
 {
-    public function index(Request $request): \Illuminate\Http\JsonResponse
+    public function unreadCount(Request $request): \Illuminate\Http\JsonResponse
     {
-        $conversations = Conversation::where('user_id', $request->user()->id)
+        $userId = $request->user()->id;
+        $totalUnread = Conversation::where('user_id', $userId)->sum('unread_count');
+        return response()->json(['unread_count' => (int)$totalUnread]);
+    }
+
+    public function unreadConversations(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $userId = $request->user()->id;
+        $conversations = Conversation::where('user_id', $userId)
+            ->where('unread_count', '>', 0)
             ->with(['contact', 'messages' => function ($query) {
                 $query->latest()->limit(1);
             }])
             ->orderByDesc('last_message_at')
-            ->paginate(20);
+            ->limit(5)
+            ->get();
+
+        return response()->json($conversations);
+    }
+
+    public function index(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $userId = $request->user()->id;
+        $page = $request->get('page', 1);
+        
+        // Use a version key to handle invalidation of all pages at once
+        $versionKey = "conv_list_version_{$userId}";
+        $version = \Illuminate\Support\Facades\Cache::get($versionKey, 1);
+        $cacheKey = "user_conversations_{$userId}_v{$version}_page_{$page}";
+
+        $conversations = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addHours(1), function () use ($userId) {
+            return Conversation::where('user_id', $userId)
+                ->with(['contact', 'messages' => function ($query) {
+                    $query->latest()->limit(1);
+                }])
+                ->orderByDesc('last_message_at')
+                ->paginate(20);
+        });
 
         return response()->json($conversations);
     }
@@ -33,12 +65,23 @@ class ChatController extends Controller
             abort(403);
         }
 
-        $messages = $conversation->messages()
-            ->orderBy('created_at', 'asc')
-            ->paginate(50);
+        $page = $request->get('page', 1);
+        $convId = $conversation->id;
+        
+        // Versioned key for message history
+        $versionKey = "conv_msg_version_{$convId}";
+        $version = \Illuminate\Support\Facades\Cache::get($versionKey, 1);
+        $cacheKey = "conversation_messages_{$convId}_v{$version}_page_{$page}";
+
+        $messages = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addHours(1), function () use ($conversation) {
+            return $conversation->messages()
+                ->orderBy('created_at', 'asc')
+                ->paginate(50);
+        });
 
         return response()->json($messages);
     }
+
 
     public function markAsRead(Conversation $conversation, Request $request): \Illuminate\Http\JsonResponse
     {
@@ -66,13 +109,24 @@ class ChatController extends Controller
         $contact = Contact::findOrFail($validated['contact_id']);
         
         $attachmentPath = null;
+        $type = 'text';
+        $mediaUrl = null;
+        
         if ($request->hasFile('attachment')) {
-            $attachmentPath = $request->file('attachment')->store('attachments', 'public');
+            $file = $request->file('attachment');
+            $attachmentPath = $file->store('attachments', 'public');
+            $mediaUrl = asset('storage/' . $attachmentPath);
+            
+            $mime = $file->getMimeType();
+            if (str_starts_with($mime, 'image/')) $type = 'image';
+            elseif (str_starts_with($mime, 'video/')) $type = 'video';
+            elseif (str_starts_with($mime, 'audio/')) $type = 'audio';
+            else $type = 'document';
         }
 
         $content = $validated['content'] ?? '';
 
-        return DB::transaction(function () use ($user, $contact, $content, $attachmentPath) {
+        return DB::transaction(function () use ($user, $contact, $content, $attachmentPath, $type, $mediaUrl) {
             $conversation = Conversation::firstOrCreate([
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
@@ -89,7 +143,10 @@ class ChatController extends Controller
             $message = Message::create([
                 'conversation_id' => $conversation->id,
                 'sender' => 'user',
-                'content' => $attachmentPath ? ($content ? $content . " (📎 Attached: " . basename($attachmentPath) . ")" : "📎 Attached: " . basename($attachmentPath)) : $content,
+                'content' => $content ?: ($attachmentPath ? '[Media Message]' : ''),
+                'type' => $type,
+                'media_url' => $mediaUrl,
+                'caption' => $type !== 'text' ? $content : null,
                 'status' => 'pending',
             ]);
 
@@ -101,8 +158,9 @@ class ChatController extends Controller
                 ];
 
                 if ($attachmentPath) {
-                    $payload['media'] = asset('storage/' . $attachmentPath);
+                    $payload['media'] = $mediaUrl;
                 }
+
 
                 $response = Http::withHeaders([
                     'Authorization' => 'Bearer ' . $integration->api_key,

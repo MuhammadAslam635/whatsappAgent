@@ -23,12 +23,18 @@
     "hits": "Hits",
     "sent": "Sent",
     "delivered": "Delivered",
-    "remaining": "Remaining",
-    "total_delivered": "Total Delivered Messages",
+    "failed": "Failed",
+    "pending": "Pending",
+
+    "interaction_volume": "Interaction Volume",
+    "bulk_performance": "Bulk Performance",
+    "incoming": "Incoming",
+    "outgoing": "Outgoing",
     "week": "Week",
     "month": "Month",
     "year": "Year",
     "date_axis": "Date Axis"
+
   },
   "stats": {
     "connected_numbers": "Connected Numbers",

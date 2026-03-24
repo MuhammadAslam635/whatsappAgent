@@ -1,14 +1,21 @@
 import React, { memo, useEffect, useState, useCallback, useRef } from 'react';
-import { Bell, CheckCircle2, Sun, Moon, Palette, Globe, PanelLeftClose, PanelRightClose, ChevronDown } from 'lucide-react';
+import { Bell, CheckCircle2, Sun, Moon, Palette, Globe, PanelLeftClose, PanelRightClose, ChevronDown, Menu } from 'lucide-react';
+
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../store/ThemeContext';
 import { useAuth } from '../../../store/AuthContext';
+import chatService from '@/api/chatService';
 import ProfileDetails from './ProfileDetails';
+import NotificationDropdown from './NotificationDropdown';
+
+
 
 interface DashboardHeaderProps {
   sidebarPosition?: 'left' | 'right';
   onToggleSidebarPosition?: () => void;
+  onToggleMobileMenu?: () => void;
 }
+
 
 const LANG_OPTIONS = [
   { code: 'EN', name: 'English', flag: '🇺🇸' },
@@ -19,14 +26,19 @@ const LANG_OPTIONS = [
   { code: 'AR', name: 'العربية', flag: '🇸🇦' },
 ];
 
-const DashboardHeader: React.FC<DashboardHeaderProps> = memo(({ sidebarPosition = 'left', onToggleSidebarPosition }) => {
+const DashboardHeader: React.FC<DashboardHeaderProps> = memo(({ sidebarPosition = 'left', onToggleSidebarPosition, onToggleMobileMenu }) => {
+
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [greeting, setGreeting] = useState('');
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
   const profileRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
   const { theme, toggleTheme, setAccentColor, accentColor } = useTheme();
 
   const handleColorChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,7 +55,16 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = memo(({ sidebarPosition 
     e.stopPropagation();
     setIsProfileOpen(prev => !prev);
     setIsLangMenuOpen(false);
+    setIsNotificationsOpen(false);
   }, []);
+
+  const toggleNotificationsMenu = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsNotificationsOpen(prev => !prev);
+    setIsLangMenuOpen(false);
+    setIsProfileOpen(false);
+  }, []);
+
 
   const selectLanguage = useCallback((code: string) => {
     i18n.changeLanguage(code);
@@ -59,7 +80,11 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = memo(({ sidebarPosition 
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileOpen(false);
       }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setIsNotificationsOpen(false);
+      }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -71,18 +96,47 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = memo(({ sidebarPosition 
     else setGreeting(t('header.greeting_evening'));
   }, [t]);
 
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const { unread_count } = await chatService.getUnreadCount();
+        setUnreadCount(unread_count);
+      } catch (err) {
+        // Silent fail
+      }
+    };
+    fetchUnreadCount();
+    // Refresh every 30 seconds for real-time feel
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+
   return (
     <header className="shrink-0 sticky top-0 z-40 w-full bg-white/70 dark:bg-slate-950/70 backdrop-blur-2xl border-b border-white/20 dark:border-slate-800/20 px-6 md:px-8 h-24 md:h-28 flex items-center justify-between transition-all duration-300 shadow-sm shadow-black/5 ring-1 ring-white/20 inset-shadow-sm">
       {/* Bottom Accent Glow */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-accent/40 to-transparent" />
 
       {/* Greeting & Status */}
-      <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 animate-in fade-in slide-in-from-left-4 duration-700">
-        <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-          {greeting}, <span className="text-accent">{user?.name?.split(' ')[0] || 'User'}</span>
-        </h1>
+      <div className="flex items-center gap-4 animate-in fade-in slide-in-from-left-4 duration-700">
+        {/* Hamburger Menu (Mobile Only) */}
+        <button 
+          onClick={onToggleMobileMenu}
+          className="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-accent transition-colors"
+        >
+          <Menu size={20} />
+        </button>
+
+        <div className="flex flex-col">
+          <h1 className="text-base md:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+            <span className="opacity-70 font-medium">{greeting}, </span>
+
+            <span className="text-accent">{user?.name?.split(' ')[0] || 'User'}</span>
+          </h1>
+        </div>
 
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] md:text-xs font-bold text-emerald-600 dark:text-emerald-400">
+
           <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
           <span>{t('header.systems_operational')}</span>
         </div>
@@ -165,12 +219,25 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = memo(({ sidebarPosition 
         </div>
 
         {/* Quick Actions */}
-        <div className="flex items-center gap-3">
-          <button className="w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center bg-white/20 dark:bg-slate-900/20 border border-slate-200/50 dark:border-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-accent hover:border-accent transition-all duration-300 shadow-sm backdrop-blur-md group relative">
-            <Bell size={18} className="group-hover:scale-110 transition-transform" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border-2 border-white dark:border-slate-900" style={{ backgroundColor: 'var(--accent)' }} />
+        <div className="flex items-center gap-3" ref={notificationsRef}>
+          <button 
+            onClick={toggleNotificationsMenu}
+            className={`w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm backdrop-blur-md group relative ${isNotificationsOpen ? 'border-accent bg-accent/10 text-accent ring-2 ring-accent/20' : 'bg-white/20 dark:bg-slate-900/20 border border-slate-200/50 dark:border-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-accent hover:border-accent'}`}
+          >
+            <Bell size={18} className={`transition-transform duration-300 ${isNotificationsOpen ? 'scale-110' : 'group-hover:scale-110'}`} />
+            {unreadCount > 0 && (
+              <span 
+                className="absolute -top-1 -right-1 flex items-center justify-center bg-accent text-[8px] text-white font-black min-w-[18px] h-[18px] px-1 rounded-full border-2 border-white dark:border-slate-900 shadow-sm animate-in zoom-in duration-300"
+                style={{ backgroundColor: 'var(--accent)' }}
+              >
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
           </button>
+
+          {isNotificationsOpen && <NotificationDropdown onClose={() => setIsNotificationsOpen(false)} />}
         </div>
+
 
         {/* Divider */}
         <div className="h-8 w-px bg-slate-200/50 dark:bg-slate-800/50 hidden sm:block mx-1 md:mx-2" />

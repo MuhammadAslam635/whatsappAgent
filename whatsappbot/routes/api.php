@@ -30,7 +30,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('contacts', \App\Http\Controllers\Api\ContactController::class);
     
     // Chat
+    Route::get('conversations/unread', [\App\Http\Controllers\Api\ChatController::class, 'unreadConversations']);
+    Route::get('conversations/unread-count', [\App\Http\Controllers\Api\ChatController::class, 'unreadCount']);
+
+
     Route::get('conversations', [\App\Http\Controllers\Api\ChatController::class, 'index']);
+
     Route::get('conversations/{conversation}/messages', [\App\Http\Controllers\Api\ChatController::class, 'show']);
     Route::post('conversations/{conversation}/read', [\App\Http\Controllers\Api\ChatController::class, 'markAsRead']);
     Route::delete('conversations/{conversation}/messages', [\App\Http\Controllers\Api\ChatController::class, 'clearMessages']);
@@ -50,3 +55,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Webhooks
 Route::post('webhooks/wasender/{integration}', [WebhookController::class, 'handleWaSender'])->name('webhooks.wasender');
+Route::match(['get', 'post'], 'webhooks/meta/{integration}', [WebhookController::class, 'handleMeta'])->name('webhooks.meta');
+

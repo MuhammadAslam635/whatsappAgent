@@ -166,7 +166,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = memo(({
                         <p className={`text-[14px] truncate flex-1 ${
                           conv.unread_count > 0 ? 'font-bold text-[#111b21] dark:text-[#e9edef]' : 'text-[#667781] dark:text-[#8696a0]'
                         }`}>
-                          {lastMsg ? lastMsg.content : 'No messages yet'}
+                          {lastMsg ? (
+                            lastMsg.type === 'image' ? '📷 Image' :
+                            lastMsg.type === 'video' ? '🎥 Video' :
+                            lastMsg.type === 'audio' ? '🎵 Audio' :
+                            lastMsg.type === 'sticker' ? '🏷️ Sticker' :
+                            lastMsg.type === 'document' ? '📄 Document' :
+                            lastMsg.content
+                          ) : 'No messages yet'}
                         </p>
                       </div>
                       {conv.unread_count > 0 && (

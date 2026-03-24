@@ -9,19 +9,30 @@ export interface DashboardStatsResponse {
     hits: number;
     series: { label: string; value: number }[];
   };
-  message_timeline: {
-    total: number | string;
-    growth: string;
-    data: number[];
+  interaction_volume: {
+    incoming: number[];
+    outgoing: number[];
     labels: string[];
   };
+  bulk_performance: {
+    sent: number[];
+    delivered: number[];
+    read: number[];
+    failed: number[];
+    labels: string[];
+  };
+  overall_total: number;
+
 }
 
 const dashboardService = {
-  getStats: async (): Promise<DashboardStatsResponse> => {
-    const response = await axios.get<DashboardStatsResponse>('/dashboard/stats');
+  getStats: async (range: string = 'daily'): Promise<DashboardStatsResponse> => {
+    const response = await axios.get<DashboardStatsResponse>('/dashboard/stats', {
+      params: { range },
+    });
     return response.data;
   },
+
 };
 
 export default dashboardService;

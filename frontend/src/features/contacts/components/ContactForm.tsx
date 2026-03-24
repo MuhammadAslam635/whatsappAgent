@@ -3,6 +3,8 @@ import { Loader2 } from 'lucide-react';
 import contactService, { Contact } from '@/api/contactService';
 import Button from '@/components/ui/Button/Button';
 import { useToast } from '@/store/ToastContext';
+import 'react-phone-number-input/style.css';
+import PhoneInput from 'react-phone-number-input';
 
 interface ContactFormProps {
   onClose: () => void;
@@ -30,19 +32,17 @@ const ContactForm: React.FC<ContactFormProps> = memo(({ onClose, contact, onRefr
     setIsLoading(true);
 
     try {
-      const cleanPhoneNumber = phoneNumber.replace(/\D/g, ''); // Store only digits for consistency
-      
       if (contact) {
         await contactService.update(contact.id, {
           name,
-          phone_number: cleanPhoneNumber,
+          phone_number: phoneNumber, // PhoneInput already provides E.164
           description
         });
         showSuccess('Contact updated successfully');
       } else {
         await contactService.create({
           name,
-          phone_number: cleanPhoneNumber,
+          phone_number: phoneNumber,
           description
         });
         showSuccess('Contact added successfully');
@@ -70,18 +70,17 @@ const ContactForm: React.FC<ContactFormProps> = memo(({ onClose, contact, onRefr
         />
       </div>
 
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 contact-phone-input">
         <label className="text-[11px] font-bold text-[#54656f] dark:text-[#8696a0] ml-1">Phone Number</label>
-        <input 
-          type="text" 
-          placeholder="e.g. 923094169184"
+        <PhoneInput
+          placeholder="Enter phone number"
           value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
-          className="w-full px-4 py-3 bg-white dark:bg-[#2a3942] border border-[#e9edef] dark:border-[#2a3942] rounded-xl text-[15px] focus:ring-0 focus:border-accent outline-none transition-all text-[#111b21] dark:text-[#e9edef]"
-          required
+          onChange={(val) => setPhoneNumber(val || '')}
+          defaultCountry="PK"
+          className="w-full px-4 py-1.5 bg-white dark:bg-[#2a3942] border border-[#e9edef] dark:border-[#2a3942] rounded-xl text-[15px] focus-within:border-accent outline-none transition-all text-[#111b21] dark:text-[#e9edef]"
         />
         <p className="text-[10px] text-slate-400 mt-1 font-medium italic">
-          * Include country code (e.g., 92 for Pakistan)
+          * Standard international format (e.g. +92 ...)
         </p>
       </div>
 

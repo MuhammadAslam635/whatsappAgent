@@ -18,30 +18,47 @@ class IntegrationController extends Controller
     {
         $validated = $request->validate([
             'type' => 'required|in:wa_sender,meta',
-            'phone_number' => 'required|string',
+            'phone_number' => 'nullable|string',
             'api_key' => 'required|string',
             'secret_key' => 'nullable|string',
             'webhook_secret' => 'nullable|string',
+            'app_id' => 'nullable|string',
+            'phone_number_id' => 'nullable|string',
+            'waba_id' => 'nullable|string',
         ]);
 
-        $integration = Integration::where('user_id', $request->user()->id)
-            ->where('phone_number', $validated['phone_number'])
-            ->first();
+
+        $user = $request->user();
+        
+        // Check if there's any existing integration for this user
+        $existing = Integration::where('user_id', $user->id)->first();
+        
+        if ($existing && $existing->type !== $validated['type']) {
+            return response()->json([
+                'message' => "You already have an active {$existing->type} integration. Please delete it before switching."
+            ], 400);
+        }
+
+        // Use the existing one if it exists (regardless of phone number, since we only allow one)
+        $integration = $existing;
 
         if ($integration) {
             $integration->update($validated);
         } else {
             $integration = new Integration($validated);
-            $integration->user_id = $request->user()->id;
+            $integration->user_id = $user->id;
             if (empty($validated['webhook_secret'])) {
                 $integration->webhook_secret = Str::random(32);
             }
             $integration->save();
         }
+
         
         // Construct the full URL using the APP_URL or current request
-        $integration->webhook_url = route('webhooks.wasender', ['integration' => $integration->id]);
+        $routeName = ($integration->type === 'meta') ? 'webhooks.meta' : 'webhooks.wasender';
+        $integration->webhook_url = route($routeName, ['integration' => $integration->id]);
         $integration->save();
+
 
         return response()->json([
             'message' => 'Integration saved successfully',
@@ -65,11 +82,15 @@ class IntegrationController extends Controller
         }
         
         $validated = $request->validate([
-            'phone_number' => 'sometimes|required|string',
+            'phone_number' => 'nullable|string',
             'api_key' => 'sometimes|required|string',
             'secret_key' => 'nullable|string',
             'webhook_secret' => 'nullable|string',
+            'app_id' => 'nullable|string',
+            'phone_number_id' => 'nullable|string',
+            'waba_id' => 'nullable|string',
         ]);
+
 
         $integration->update($validated);
 

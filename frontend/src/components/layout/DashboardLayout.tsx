@@ -9,12 +9,19 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = memo(({ children }) => {
   const [sidebarPosition, setSidebarPosition] = useState<'left' | 'right'>('left');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const isChatPage = location.pathname === '/dashboard/chat';
+
 
   const toggleSidebarPosition = () => {
     setSidebarPosition(prev => prev === 'left' ? 'right' : 'left');
   };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(prev => !prev);
+  };
+
 
   return (
     <div className="h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-500 relative overflow-hidden flex flex-col">
@@ -25,17 +32,31 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = memo(({ children }) => {
         <div className="absolute top-[30%] right-[10%] w-[25%] h-[25%] rounded-full bg-accent/5 blur-[80px]" style={{ backgroundColor: 'var(--accent)', opacity: 0.05 }} />
       </div>
 
+      {/* Sidebar Overlay (Mobile) */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 lg:hidden animate-in fade-in duration-300"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sticky Fixed Sidebar */}
-      <Sidebar position={sidebarPosition} />
+      <Sidebar position={sidebarPosition} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+
 
       {/* Main Container */}
       <div className={`transition-all duration-500 ease-in-out h-full flex flex-col relative z-10 ${
           isChatPage ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden'
         } ${
-          sidebarPosition === 'left' ? 'ml-20 md:ml-24' : 'mr-20 md:mr-24'
-        }`}>
+          sidebarPosition === 'left' ? 'lg:ml-24' : 'lg:mr-24'
+        } ml-0`}>
         {/* Sticky Header */}
-        <DashboardHeader sidebarPosition={sidebarPosition} onToggleSidebarPosition={toggleSidebarPosition} />
+        <DashboardHeader 
+          sidebarPosition={sidebarPosition} 
+          onToggleSidebarPosition={toggleSidebarPosition} 
+          onToggleMobileMenu={toggleMobileMenu}
+        />
+
 
         {/* Content Area */}
         <main className={`flex-1 p-4 md:p-6 lg:p-8 transition-all duration-300 relative z-0 flex flex-col ${isChatPage ? 'min-h-0 overflow-hidden' : ''}`}>

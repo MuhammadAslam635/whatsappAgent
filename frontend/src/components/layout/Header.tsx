@@ -111,7 +111,8 @@ const Header: React.FC = memo(() => {
               </button>
             </div>
 
-            <div className="hidden xs:block h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
+            <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
+
 
             <div className="hidden md:flex items-center">
               {isAuthenticated ? (

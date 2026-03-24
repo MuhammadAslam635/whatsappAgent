@@ -37,9 +37,12 @@ class ContactController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
+            'phone_number' => 'required|phone:AUTO,INTERNATIONAL',
             'description' => 'nullable|string',
         ]);
+
+        // Normalize to E.164
+        $validated['phone_number'] = (string) phone($validated['phone_number'], 'AUTO')->formatE164();
 
         return $request->user()->contacts()->create($validated);
     }
@@ -66,9 +69,13 @@ class ContactController extends Controller
 
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'phone_number' => 'sometimes|required|string|max:20',
+            'phone_number' => 'sometimes|required|phone:AUTO,INTERNATIONAL',
             'description' => 'nullable|string',
         ]);
+
+        if (isset($validated['phone_number'])) {
+            $validated['phone_number'] = (string) phone($validated['phone_number'], 'AUTO')->formatE164();
+        }
 
         $contact->update($validated);
         return $contact;
@@ -94,8 +101,10 @@ class ContactController extends Controller
     {
         $request->validate([
             'file' => 'required|file|mimes:csv,txt|max:2048',
+            'default_country' => 'nullable|string|max:2', // e.g. 'PK'
         ]);
 
+        $defaultCountry = $request->get('default_country', 'AUTO');
         $file = $request->file('file');
         $path = $file->getRealPath();
         $data = array_map('str_getcsv', file($path));
@@ -127,30 +136,22 @@ class ContactController extends Controller
                 if (count($row) <= max($nameIndex, $phoneIndex)) continue;
 
                 $name = trim($row[$nameIndex]);
-                $phone = trim($row[$phoneIndex]);
+                $phoneRaw = trim($row[$phoneIndex]);
 
-                if (empty($name) || empty($phone)) continue;
+                if (empty($name) || empty($phoneRaw)) continue;
 
-                // Validate individual row
-                $validator = Validator::make([
-                    'name' => $name,
-                    'phone_number' => $phone,
-                ], [
-                    'name' => 'required|string|max:255',
-                    'phone_number' => 'required|string|max:20',
-                ]);
-
-                if ($validator->fails()) {
-                    $errors[] = "Row " . ($index + 2) . ": " . implode(', ', $validator->errors()->all());
-                    continue;
+                try {
+                    $phoneFormatted = (string) phone($phoneRaw, $defaultCountry)->formatE164();
+                    
+                    // Use updateOrCreate to avoid duplicates for the same user
+                    Contact::updateOrCreate(
+                        ['user_id' => $userId, 'phone_number' => $phoneFormatted],
+                        ['name' => $name]
+                    );
+                    $addedCount++;
+                } catch (\Exception $e) {
+                    $errors[] = "Row " . ($index + 2) . ": Invalid phone number '$phoneRaw'. (" . $e->getMessage() . ")";
                 }
-
-                // Use updateOrCreate to avoid duplicates for the same user
-                Contact::updateOrCreate(
-                    ['user_id' => $userId, 'phone_number' => $phone],
-                    ['name' => $name]
-                );
-                $addedCount++;
             }
 
             DB::commit();
