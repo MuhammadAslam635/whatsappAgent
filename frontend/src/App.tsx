@@ -5,6 +5,7 @@ import { AuthProvider } from './store/AuthContext';
 import { ToastProvider } from './store/ToastContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import AxiosInterceptor from './components/api/AxiosInterceptor';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const HomePage = React.lazy(() => import('./features/home/pages/home'));
 const DashboardPage = React.lazy(() => import('./features/dashboard/pages/dashboard'));
@@ -19,17 +20,19 @@ const AppContent: React.FC = memo(() => {
     </div>}>
       {!isDashboard && <Header />}
       <main className={`flex-1 w-full ${!isDashboard ? 'pt-14' : ''}`}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route 
-            path="/dashboard/*" 
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route 
+              path="/dashboard/*" 
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </ErrorBoundary>
       </main>
     </Suspense>
   );
@@ -37,17 +40,19 @@ const AppContent: React.FC = memo(() => {
 
 const App: React.FC = memo(() => {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <AxiosInterceptor>
-          <BrowserRouter>
-            <div className="min-h-screen flex flex-col bg-white dark:bg-[#020617]">
-              <AppContent />
-            </div>
-          </BrowserRouter>
-        </AxiosInterceptor>
-      </ToastProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ToastProvider>
+          <AxiosInterceptor>
+            <BrowserRouter>
+              <div className="min-h-screen flex flex-col bg-white dark:bg-[#020617]">
+                <AppContent />
+              </div>
+            </BrowserRouter>
+          </AxiosInterceptor>
+        </ToastProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 });
 

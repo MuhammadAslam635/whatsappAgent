@@ -7,12 +7,12 @@ use App\Models\Integration;
 use App\Models\Message;
 use App\Neuron\AutoReplyAgent;
 use App\Services\RAGService;
+use App\Services\WhatsAppService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use NeuronAI\Chat\Messages\UserMessage;
 
@@ -25,9 +25,6 @@ class ProcessAutoReplyJob implements ShouldQueue
     public $content;
     public $phone;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(Integration $integration, Conversation $conversation, string $content, string $phone)
     {
         $this->integration = $integration;
@@ -36,68 +33,43 @@ class ProcessAutoReplyJob implements ShouldQueue
         $this->phone = $phone;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
-        $integration = $this->integration;
-        $conversation = $this->conversation;
-        $content = $this->content;
-        $phone = $this->phone;
-
-        // Ensure user is loaded
-        $integration->load('user');
+        $this->integration->load('user');
 
         try {
-            Log::info("[JOB] Starting AI reply generation", ['phone' => $phone]);
-            
-            // 1. Get Context from Vector DB
+            Log::info("[JOB] Starting AI reply generation", ['phone' => $this->phone]);
+
             $ragService = app(RAGService::class);
-            $searchResults = $ragService->similaritySearch($content, $integration->user_id);
-            
+            $searchResults = $ragService->similaritySearch($this->content, $this->integration->user_id);
+
             $contextStr = "";
             foreach ($searchResults as $hit) {
                 $contextStr .= "Document: {$hit->document_name}\nContent: {$hit->content}\n\n";
             }
-            Log::info("[JOB SEARCH] Found " . count($searchResults) . " context matches.");
 
-            // 2. Instantiate Neuron AI Agent
-            $customPrompt = $integration->user->bot_system_prompt ?? '';
+            $customPrompt = $this->integration->user->bot_system_prompt ?? '';
             $agent = new AutoReplyAgent($contextStr, $customPrompt);
-            
-            // 3. Generate Answer
-            $agentHandler = $agent->chat(new UserMessage($content));
-            $replyMessage = $agentHandler->getMessage();
-            $replyText = $replyMessage->getContent();
-            
-            // Strip markdown
+
+            $agentHandler = $agent->chat(new UserMessage($this->content));
+            $replyText = $agentHandler->getMessage()->getContent();
             $replyText = preg_replace('/[\*#_~`\[\]]/', '', $replyText);
 
             Log::info("[JOB GENERATED] AI Reply generated successfully.");
 
-            // 4. Send Message via Wasender API
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $integration->api_key,
-                'Accept' => 'application/json',
-            ])->post("https://api.wasenderapi.com/api/send-message", [
-                'to' => $phone,
-                'text' => $replyText
-            ]);
+            $result = WhatsAppService::sendMessage($this->integration, $this->phone, $replyText);
 
-            if ($response->successful()) {
-                Log::info("[JOB SENT] AI Message successfully dispatched via Wasender.");
-                
-                // Store bot reply
+            if ($result['success']) {
+                Log::info("[JOB SENT] AI Message dispatched successfully.");
                 Message::create([
-                    'conversation_id' => $conversation->id,
-                    'whatsapp_message_id' => 'bot_' . uniqid(),
-                    'sender' => 'user', 
+                    'conversation_id' => $this->conversation->id,
+                    'whatsapp_message_id' => $result['message_id'] ?? ('bot_' . uniqid()),
+                    'sender' => 'user',
                     'content' => $replyText,
                     'status' => 'sent',
                 ]);
             } else {
-                Log::error("[JOB ERROR] Wasender failed", ['body' => $response->body()]);
+                Log::error("[JOB ERROR] Send failed", ['error' => $result['error']]);
             }
         } catch (\Exception $e) {
             Log::error("[JOB EXCEPTION] " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);

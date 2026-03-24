@@ -17,7 +17,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users', UserController::class);
     Route::post('user/bot-settings', [UserController::class, 'updateBotSettings']);
     Route::get('user/bot-settings', [UserController::class, 'getBotSettings']);
-    
+
     // Integrations
     Route::apiResource('integrations', IntegrationController::class);
 
@@ -28,7 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('contacts/bulk', [\App\Http\Controllers\Api\ContactController::class, 'bulkStore']);
     Route::delete('contacts/bulk', [\App\Http\Controllers\Api\ContactController::class, 'bulkDestroy']);
     Route::apiResource('contacts', \App\Http\Controllers\Api\ContactController::class);
-    
+
     // Chat
     Route::get('conversations', [\App\Http\Controllers\Api\ChatController::class, 'index']);
     Route::get('conversations/{conversation}/messages', [\App\Http\Controllers\Api\ChatController::class, 'show']);
@@ -48,5 +48,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('documents/{name}', [DocumentController::class, 'destroy']);
 });
 
-// Webhooks
+// Webhooks (public — no auth)
 Route::post('webhooks/wasender/{integration}', [WebhookController::class, 'handleWaSender'])->name('webhooks.wasender');
+
+// Meta Cloud API Webhooks
+Route::get('webhooks/meta', [WebhookController::class, 'verifyMetaWebhook'])->name('webhooks.meta');
+Route::post('webhooks/meta', [WebhookController::class, 'handleMetaWebhook']);

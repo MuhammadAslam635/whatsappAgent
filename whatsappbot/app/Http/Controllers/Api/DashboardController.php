@@ -20,9 +20,7 @@ class DashboardController extends Controller
 
         return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($userId) {
             // 1. Connected Numbers
-            $connectedNumbers = Integration::where('user_id', $userId)
-                ->where('type', 'wa_sender')
-                ->count();
+            $connectedNumbers = Integration::where('user_id', $userId)->count();
 
             // 2. Total Contacts
             $totalContacts = Contact::where('user_id', $userId)->count();
@@ -78,6 +76,27 @@ class DashboardController extends Controller
                 ->whereIn('status', ['delivered', 'read'])
                 ->count();
 
+            // Calculate real growth: this week vs last week
+            $thisWeekCount = Message::whereHas('conversation', fn($q) => $q->where('user_id', $userId))
+                ->where('sender', 'user')
+                ->whereIn('status', ['delivered', 'read'])
+                ->where('created_at', '>=', Carbon::now()->subDays(7)->startOfDay())
+                ->count();
+
+            $lastWeekCount = Message::whereHas('conversation', fn($q) => $q->where('user_id', $userId))
+                ->where('sender', 'user')
+                ->whereIn('status', ['delivered', 'read'])
+                ->whereBetween('created_at', [
+                    Carbon::now()->subDays(14)->startOfDay(),
+                    Carbon::now()->subDays(7)->startOfDay(),
+                ])
+                ->count();
+
+            $growthPct = $lastWeekCount > 0
+                ? round((($thisWeekCount - $lastWeekCount) / $lastWeekCount) * 100, 1)
+                : ($thisWeekCount > 0 ? 100 : 0);
+            $growthStr = ($growthPct >= 0 ? '+' : '') . $growthPct . '%';
+
             return response()->json([
                 'stats' => [
                     'connected_numbers' => $connectedNumbers,
@@ -94,7 +113,7 @@ class DashboardController extends Controller
                 ],
                 'message_timeline' => [
                     'total' => $totalDeliveredAllTime,
-                    'growth' => '+12.5%',
+                    'growth' => $growthStr,
                     'data' => $timelineData,
                     'labels' => $timelineLabels,
                 ]

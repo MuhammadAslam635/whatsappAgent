@@ -73,10 +73,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(Contact::class);
     }
-    public function knowledgeBases()
-    {
-        return $this->hasMany(KnowledgeBase::class);
-    }
     public function integrations()
     {
         return $this->hasMany(Integration::class);
